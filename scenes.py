@@ -65,7 +65,7 @@ class Scenes(Vars):
                     self.prog_running = False
             # ОТРИСОВКА КАДРА:
             self.player.animate()
-            self.sc.fill((0, 0, 200))
+            self.sc.fill((0, 0, 0))
             # дергаем обновления-отрисовку объектов:
             cor_level.update(self.sc)
             self.player.update(self.sc, events)

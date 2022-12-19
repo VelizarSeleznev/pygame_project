@@ -1,4 +1,6 @@
 # classes.py
+import pygame
+
 from vars import *
 # "базовые" классы -  модули, реализующие функции наследуемых классво.
 # проще говоря, это свойства, например, класс, наследуемый от Sprite
@@ -27,16 +29,21 @@ class Sprite:
         self.current_anim = 0
         self.timer = pygame.time.get_ticks()
         self.atk_timer = pygame.time.get_ticks()
+        self.dash_dir_x = 0
+        self.dash_dir_y = 0
 
         # анимации
         my_spritesheet = Spritesheet('character.png')
+        self.dash_len = 3
+        self.dash_count = 0
+        self.dash_need = 3
         self.atk_len = 30
         self.first_atk = 7
         self.second_atk = 7 + 6
         self.third_atk = 30
         self.walk_len = 12
         self.SB_len = 15
-        self.dash_len = 16
+        self.all_dash_len = 16
         self.atk_up = []
         self.atk_down = []
         self.atk_right = []
@@ -77,7 +84,7 @@ class Sprite:
             self.SB_right.append(im)
             self.SB_left.append(pygame.transform.flip(im, True, False))
             self.SB_up.append(pygame.transform.scale2x(my_spritesheet.parse_sprite('11.' + str(i) + '.png')))
-        for i in range(self.dash_len):
+        for i in range(self.all_dash_len):
             self.dash_up.append(pygame.transform.scale2x(my_spritesheet.parse_sprite('7.' + str(i) + '.png')))
             self.dash_back.append(pygame.transform.scale2x(my_spritesheet.parse_sprite('8.' + str(i) + '.png')))
             im = pygame.transform.scale2x(my_spritesheet.parse_sprite('9.' + str(i) + '.png'))
@@ -122,7 +129,7 @@ class Player(Sprite, ModuleManager):
     def __init__(self):
         # инициализация:
         self.init_modiles()
-
+        self.dash_speed = 0
         self.pos_x = self.pos_y = 0
         self.en_x = self.en_y = 0  # инерция
         self.max_speed = 7
@@ -134,6 +141,8 @@ class Player(Sprite, ModuleManager):
         #
 
     def get_image(self):
+        # default (32, 64)
+
         surf = pygame.Surface((400, 400), pygame.SRCALPHA, 32).convert_alpha()
         if self.current_image in self.char or self.current_image in self.char_back\
                 or self.current_image in self.char_left:
@@ -148,6 +157,14 @@ class Player(Sprite, ModuleManager):
             surf.blit(self.current_image, (200 - 40 * 2, 200 - 34 * 2))
         elif self.current_image in self.atk_left:
             surf.blit(self.current_image, (200 - 97 * 2 + 24 * 2, 200 - 34 * 2))
+        elif self.current_image in self.dash_right:
+            surf.blit(self.current_image, (200 - 44, 200 - 30))
+        elif self.current_image in self.dash_left:
+            surf.blit(self.current_image, (200 - 44, 200 - 30))
+        elif self.current_image in self.dash_up:
+            surf.blit(self.current_image, (200 - 20, 200 - 32))
+        elif self.current_image in self.dash_back:
+            surf.blit(self.current_image, (200 - 25, 200 - 32))
         else:
             surf.blit(self.current_image, (200 - 8 * 2, 200 - 16 * 2))
         return surf
@@ -180,6 +197,46 @@ class Player(Sprite, ModuleManager):
             else:
                 self.current_image = self.char_left[self.current_anim]
 
+    def dash_image(self):
+        if self.dash_count < self.dash_need:
+            self.dash_speed = self.max_speed * 3
+            if pygame.time.get_ticks() - self.timer > 30:
+                self.current_anim += 1
+                self.current_anim %= self.dash_len
+                self.timer = pygame.time.get_ticks()
+                if self.direction == 'up':
+                    self.current_image = self.dash_back[self.current_anim]
+                elif self.direction == 'down':
+                    self.current_image = self.dash_up[self.current_anim]
+                elif self.direction == 'right':
+                    self.current_image = self.dash_right[self.current_anim]
+                else:
+                    self.current_image = self.dash_left[self.current_anim]
+                self.dash_count += 1
+        else:
+            if pygame.time.get_ticks() - self.timer > 50:
+                self.current_anim += 1
+                self.dash_count += 1
+                if self.current_anim < self.all_dash_len:
+                    self.dash_speed *= 0.7
+                    self.dash_speed = int(self.dash_speed)
+                    if self.dash_speed <= 1:
+                        self.dash_speed = 0
+                    self.timer = pygame.time.get_ticks()
+                    if self.direction == 'up':
+                        self.current_image = self.dash_back[self.current_anim]
+                    elif self.direction == 'down':
+                        self.current_image = self.dash_up[self.current_anim]
+                    elif self.direction == 'right':
+                        self.current_image = self.dash_right[self.current_anim]
+                    else:
+                        self.current_image = self.dash_left[self.current_anim]
+                else:
+                    self.walk_image()
+                    self.dash = False
+                    self.dash_count = 0
+                    return
+
     def animate(self):
         if self.atk_state > 0:
             if self.current_anim >= self.first_atk and self.atk_state > 1:
@@ -206,27 +263,31 @@ class Player(Sprite, ModuleManager):
                 elif self.current_anim <= self.first_atk:
                     self.atk_image()
         elif self.dash:
-            pass
+            self.dash_image()
         elif self.moving:
             self.walk_image()
         else:
             self.current_image = self.stand[self.direction]
 
     def move(self, right, down):
-        if abs(self.en_x) < self.max_speed:
-            self.en_x += self.en_delta * right
+        if self.dash:
+            self.en_x = self.dash_speed * self.dash_dir_x
+            self.en_y = self.dash_speed * self.dash_dir_y
         else:
-            if self.en_x > 0:
-                self.en_x = self.max_speed
+            if abs(self.en_x) < self.max_speed:
+                self.en_x += self.en_delta * right
             else:
-                self.en_x = self.max_speed * -1
-        if abs(self.en_y) < self.max_speed:
-            self.en_y += self.en_delta * down
-        else:
-            if self.en_y > 0:
-                self.en_y = self.max_speed
+                if self.en_x > 0:
+                    self.en_x = self.max_speed
+                else:
+                    self.en_x = self.max_speed * -1
+            if abs(self.en_y) < self.max_speed:
+                self.en_y += self.en_delta * down
             else:
-                self.en_y = self.max_speed * -1
+                if self.en_y > 0:
+                    self.en_y = self.max_speed
+                else:
+                    self.en_y = self.max_speed * -1
 
     def update(self, scene, events):
 
@@ -242,6 +303,27 @@ class Player(Sprite, ModuleManager):
                         self.moving = False
                         self.move_y = 0
                         self.move_x = 0
+                if ev.key == pygame.K_LSHIFT:
+                    if self.dash_count <= 10:
+                        self.dash_count = 0
+                        self.dash = True
+                        self.current_anim = 0
+                        if not self.moving:
+                            if self.direction == 'up':
+                                self.dash_dir_y = -1
+                                self.dash_dir_x = 0
+                            elif self.direction == 'down':
+                                self.dash_dir_y = 1
+                                self.dash_dir_x = 0
+                            elif self.direction == 'right':
+                                self.dash_dir_x = 1
+                                self.dash_dir_y = 0
+                            else:
+                                self.dash_dir_x = -1
+                                self.dash_dir_y = 0
+                        else:
+                            self.dash_dir_y = self.move_y
+                            self.dash_dir_x = self.move_x
                 if ev.key == pygame.K_w or ev.key == pygame.K_UP:
                     if self.atk_state == 0:
                         self.move_y = -1
