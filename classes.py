@@ -15,7 +15,8 @@ def resource_path(relative):
 class Sprite:
     def __init__(self):
         # состояние
-        self.direcitons = ['up', 'down', 'left', 'right']
+        self.directions_x = {-1: 'left', 1: 'right'}
+        self.directions_y = {-1: 'up', 1: 'down'}
         self.direction = 'down'
         self.atk_state = 0
         self.moving = False
@@ -237,36 +238,32 @@ class Player(Sprite, ModuleManager):
                 if ev.key == pygame.K_w or ev.key == pygame.K_UP:
                     if self.atk_state == 0:
                         self.move_y = -1
-                        self.moving = True
-                        self.direction = 'up'
                 elif ev.key == pygame.K_s or ev.key == pygame.K_DOWN:
                     if self.atk_state == 0:
                         self.move_y = 1
-                        self.moving = True
-                        self.direction = 'down'
                 if ev.key == pygame.K_a or ev.key == pygame.K_LEFT:
                     if self.atk_state == 0:
-                        self.moving = True
-                        self.direction = 'left'
                         self.move_x = -1
                 elif ev.key == pygame.K_d or ev.key == pygame.K_RIGHT:
                     if self.atk_state == 0:
-                        self.moving = True
-                        self.direction = 'right'
                         self.move_x = 1
             elif ev.type == pygame.KEYUP:
                 if ev.key == pygame.K_w or ev.key == pygame.K_UP:
                     self.move_y = 0
-                    self.moving = False
                 if ev.key == pygame.K_s or ev.key == pygame.K_DOWN:
                     self.move_y = 0
-                    self.moving = False
                 if ev.key == pygame.K_a or ev.key == pygame.K_LEFT:
                     self.move_x = 0
-                    self.moving = False
                 if ev.key == pygame.K_d or ev.key == pygame.K_RIGHT:
                     self.move_x = 0
-                    self.moving = False
+        if self.move_y:
+            self.moving = True
+            self.direction = self.directions_y[self.move_y]
+        if self.move_x:
+            self.moving = True
+            self.direction = self.directions_x[self.move_x]
+        if not self.move_x and not self.move_y:
+            self.moving = False
 
         self.move(self.move_x, self.move_y)
         self.pos_x += self.en_x
