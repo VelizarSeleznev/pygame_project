@@ -438,10 +438,10 @@ class Level:
     def __init__(self):
         self.raw_map = []
         self.camera = None
-        self.size = 150
         stone = Sprite()
-        stone.load_image("test_wall_block.png", self.size, self.size)
+        stone.load_image("test_wall_block.png", 100, 100)
         self.stone_image = stone.img
+        self.map = None
 
     def gen(self, mappath):
         with open(mappath, 'r') as f:
@@ -449,37 +449,15 @@ class Level:
             for line in lines:
                 line = list(line.strip('\n'))
                 self.raw_map.append(line)
+        self.map = pygame.surface.Surface((len(self.raw_map) * 100, len(self.raw_map[0]) * 100))
+        for i, a in enumerate(self.raw_map):
+            for j, b in enumerate(a):
+                if self.raw_map[i][j] == '0':
+                    self.map.blit(self.stone_image, (100 * i, 100 * j))
 
     def update(self, scene):
-        s = self.camera.offset.x // self.size
-        if s < 0:
-            s = 0
-        if s > len(self.raw_map):
-            s = len(self.raw_map) - 1
-        m = self.camera.offset.x // self.size + 15
-        if m < 0:
-            m = 0
-        if m > len(self.raw_map):
-            m = len(self.raw_map) - 1
-        e = self.camera.offset.y // self.size
-        if e < 0:
-            e = 0
-        if e > len(self.raw_map[0]):
-            e = len(self.raw_map[0]) - 1
-        n = self.camera.offset.y // self.size + 15
-        if n < 0:
-            n = 0
-        if n > len(self.raw_map[0]):
-            n = len(self.raw_map[0]) - 1
-        n = int(n)
-        e = int(e)
-        m = int(m)
-        s = int(s)
-        for i, a in enumerate(self.raw_map[s:m]):
-            for j, b in enumerate(a[e:n]):
-                if self.raw_map[i + s][j + e] == '0':
-                    scene.blit(self.stone_image, (self.size * (i + s) - self.camera.offset.x,
-                                                  self.size * (j + e) - self.camera.offset.y))
+        scene.blit(self.map, (-self.camera.offset.x, -self.camera.offset.y))
+        scene.blit(self.map, (-self.camera.offset.x, -self.camera.offset.y))
 
     def set_camera(self, camera):
         self.camera = camera
