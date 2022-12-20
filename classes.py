@@ -437,23 +437,24 @@ class Player(Sprite, ModuleManager):
 class Level:
     def __init__(self):
         title = ''
-        self.mapL1 = []
+        self.raw_map = []
         self.camera = None
+        stone = Sprite()
+        stone.load_image("test_wall_block.png", 100, 100)
+        self.stone_image = stone.img
 
-    def gen(self, x, y):
-        self.mapL1 = [[Sprite()] * x for i in range(y)]
-        for i in self.mapL1:
-            for j in i:
-                j.load_image("test_wall_block.png", 100, 100)
+    def gen(self, mappath):
+        with open(mappath, 'r') as f:
+            lines = f.readlines()
+            for line in lines:
+                line = list(line.strip('\n'))
+                self.raw_map.append(line)
 
     def update(self, scene):
-        n_i = 0
-        for i in self.mapL1:
-            n_j = 0
-            for j in i:
-                scene.blit(j.img, (100 * n_i - self.camera.offset.x, 100 * n_j - self.camera.offset.y))
-                n_j += 1
-            n_i += 1
+        for i, a in enumerate(self.raw_map):
+            for j, b in enumerate(a):
+                if self.raw_map[i][j] == '0':
+                    scene.blit(self.stone_image, (100 * i - self.camera.offset.x, 100 * j - self.camera.offset.y))
 
     def set_camera(self, camera):
         self.camera = camera

@@ -54,7 +54,7 @@ class Scenes(Vars):
 
         cor_level = Level()
         cor_level.set_camera(self.camera)
-        cor_level.gen(3, 5)
+        cor_level.gen('maps/level1.map')
 
         # СЦЕНА:
         print('test area!')
