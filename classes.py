@@ -243,7 +243,7 @@ class Player(Sprite, ModuleManager):
                 self.current_image = self.atk_left[self.current_anim]
 
     def walk_image(self):
-        if pygame.time.get_ticks() - self.timer > 70:
+        if pygame.time.get_ticks() - self.timer > 100:
             self.current_anim += 1
             self.current_anim %= self.walk_len
             self.timer = pygame.time.get_ticks()
@@ -436,11 +436,11 @@ class Player(Sprite, ModuleManager):
 
 class Level:
     def __init__(self):
-        title = ''
         self.raw_map = []
         self.camera = None
+        self.size = 150
         stone = Sprite()
-        stone.load_image("test_wall_block.png", 100, 100)
+        stone.load_image("test_wall_block.png", self.size, self.size)
         self.stone_image = stone.img
 
     def gen(self, mappath):
@@ -451,25 +451,35 @@ class Level:
                 self.raw_map.append(line)
 
     def update(self, scene):
-        for i, a in enumerate(self.raw_map):
-            for j, b in enumerate(a):
-                if self.raw_map[i][j] == '0':
-                    scene.blit(self.stone_image, (100 * i - self.camera.offset.x, 100 * j - self.camera.offset.y))
+        s = self.camera.offset.x // self.size
+        if s < 0:
+            s = 0
+        if s > len(self.raw_map):
+            s = len(self.raw_map) - 1
+        m = self.camera.offset.x // self.size + 15
+        if m < 0:
+            m = 0
+        if m > len(self.raw_map):
+            m = len(self.raw_map) - 1
+        e = self.camera.offset.y // self.size
+        if e < 0:
+            e = 0
+        if e > len(self.raw_map[0]):
+            e = len(self.raw_map[0]) - 1
+        n = self.camera.offset.y // self.size + 15
+        if n < 0:
+            n = 0
+        if n > len(self.raw_map[0]):
+            n = len(self.raw_map[0]) - 1
+        n = int(n)
+        e = int(e)
+        m = int(m)
+        s = int(s)
+        for i, a in enumerate(self.raw_map[s:m]):
+            for j, b in enumerate(a[e:n]):
+                if self.raw_map[i + s][j + e] == '0':
+                    scene.blit(self.stone_image, (self.size * (i + s) - self.camera.offset.x,
+                                                  self.size * (j + e) - self.camera.offset.y))
 
     def set_camera(self, camera):
         self.camera = camera
-
-'''
-class Camera:
-    def __init__(self):
-        self.dx = self.dy = 0
-
-    def apply(self, obj):
-        obj.rect.x += self.dx
-        obj.rect.y += self.dy
-
-    def update(self, rect):
-        self.dx = -(rect.x + rect.w // 2 - 1920 // 2)
-        self.dy = -(rect.y + rect.h // 2 - 800 // 2)
-        print(self.dx, self.dy)
-'''
