@@ -45,10 +45,15 @@ class Scenes(Vars):
         clock = pygame.time.Clock()
 
         self.player = Player()
+        self.camera = Camera(self.player)
+        follow = Follow(self.camera, self.player)
+        self.camera.set_method(follow)
+        self.player.set_camera(self.camera)
         # self.player.load_image('test_player.png', 100, 100)
         # all_sprites.add(self.player)
 
         cor_level = Level()
+        cor_level.set_camera(self.camera)
         cor_level.gen(3, 5)
 
         # СЦЕНА:
@@ -69,7 +74,7 @@ class Scenes(Vars):
             # дергаем обновления-отрисовку объектов:
             cor_level.update(self.sc)
             self.player.update(self.sc, events)
-
+            self.camera.scroll()
 
             pygame.display.update()
             # all_sprites.draw(self.sc)

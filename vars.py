@@ -8,6 +8,8 @@ import logging
 import pygame
 import pygame_widgets
 from pygame_widgets.button import Button
+import pygame as p
+from abc import ABC, abstractmethod
 
 from spritesheet import Spritesheet
 
@@ -15,13 +17,15 @@ from spritesheet import Spritesheet
 g = None  # (Game) game unit
 corSceneNum = 0  # изначально 0 - главное меню
 corLevel = None  # (Level) current game level
+vec = p.math.Vector2
+width, height = 1920, 800
 
 
 class Vars:
     def __init__(self):
-
+        self.camera = None
         self.fps = 60
-        self.width, self.height = 1920, 800
+        self.width, self.height = width, height
         self.title = 'my_title'
         self.sc = None  # window
         self.corSceneNum = 0  # current scene number

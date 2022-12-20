@@ -2,8 +2,8 @@
 import pygame
 
 from vars import *
-# "базовые" классы -  модули, реализующие функции наследуемых классво.
-# проще говоря, это свойства, например, класс, наследуемый от Sprite
+# "Базовые" классы - модули, реализующие функции наследуемых классов.
+# Проще говоря, это свойства, например, класс, наследуемый от Sprite
 # будет иметь спрайт.
 
 
@@ -14,7 +14,99 @@ def resource_path(relative):
 
 
 # ================== BASE CLASSES:
+class CamScroll(ABC):
+    def __init__(self, camera, player):
+        self.camera = camera
+        self.player = player
+
+    @abstractmethod
+    def scroll(self):
+        pass
+
+
+class Follow(CamScroll):
+    def __init__(self, camera, player):
+        CamScroll.__init__(self, camera, player)
+
+    def scroll(self):
+        self.camera.offset_float.x += (self.player.rect.x - self.camera.offset_float.x + self.camera.CONST.x)
+        self.camera.offset_float.y += (self.player.rect.y - self.camera.offset_float.y + self.camera.CONST.y)
+        self.camera.offset.x, self.camera.offset.y = int(self.camera.offset_float.x), int(self.camera.offset_float.y)
+
+
+class Border(CamScroll):
+    def __init__(self, camera, player):
+        CamScroll.__init__(self, camera, player)
+
+    def scroll(self):
+        self.camera.offset_float.x += (self.player.rect.x - self.camera.offset_float.x + self.camera.CONST.x)
+        self.camera.offset_float.y += (self.player.rect.y - self.camera.offset_float.y + self.camera.CONST.y)
+        self.camera.offset.x, self.camera.offset.y = int(self.camera.offset_float.x), int(self.camera.offset_float.y)
+        self.camera.offset.x = max(self.player.left_border, self.camera.offset.x)
+        self.camera.offset.x = min(self.camera.offset.x, self.player.right_border - self.camera.DISPLAY_W)
+
+
+class Auto(CamScroll):
+    def __init__(self, camera, player):
+        CamScroll.__init__(self, camera, player)
+
+    def scroll(self):
+        self.camera.offset.x += 1
+
+
+class Camera:
+    def __init__(self, player):
+        self.player = player
+        self.offset = vec(0, 0)
+        self.offset_float = vec(0, 0)
+        self.DISPLAY_W = width
+        self.DISPLAY_H = height
+        self.CONST = vec(-(self.DISPLAY_W / 2 - self.player.rect.w), -(self.DISPLAY_H / 2 - self.player.rect.h))
+        self.method = None
+
+    def set_method(self, method):
+        self.method = method
+
+    def scroll(self):
+        self.method.scroll()
+
+
 class Sprite:
+    def load_image(self, filepath, size_x=None, size_y=None):
+        fullname = resource_path(filepath)
+        # fullname = os.path.join('YLP-master\img', filepath)
+        # if not os.path.isfile(fullname):
+        #     logging.critical(f"Image file not found ('{fullname}')")
+        #     sys.exit()
+        self.img = pygame.image.load(fullname)
+
+        if size_x and size_y:
+            self.resize(size_x, size_y)
+
+        self.rect = self.img.get_rect()
+
+    def resize(self, new_width, new_height):
+        self.img = pygame.transform.scale(self.img, (new_width, new_height))
+
+
+class Collision:
+    def __init__(self):
+        pass
+    # if collision:
+    #    sprite1.rect.colliderect(sprite2.rect)
+
+
+class ModuleManager:
+    def init_modiles(self):
+        base_classes = (Sprite, Collision)
+        for cl in base_classes:
+            if issubclass(type(self), cl):
+                cl.__init__(self)
+
+
+# ================== GAME CLASSES:
+
+class Player(Sprite, ModuleManager):
     def __init__(self):
         # состояние
         self.directions_x = {-1: 'left', 1: 'right'}
@@ -31,9 +123,10 @@ class Sprite:
         self.atk_timer = pygame.time.get_ticks()
         self.dash_dir_x = 0
         self.dash_dir_y = 0
+        self.rect = pygame.Rect((0, 0, 200, 200))
 
         # анимации
-        my_spritesheet = Spritesheet('character.png')
+        my_spritesheet = Spritesheet('images/character/character.png')
         self.dash_len = 3
         self.dash_count = 0
         self.dash_need = 3
@@ -90,43 +183,6 @@ class Sprite:
             im = pygame.transform.scale2x(my_spritesheet.parse_sprite('9.' + str(i) + '.png'))
             self.dash_right.append(im)
             self.dash_left.append(pygame.transform.flip(im, True, False))
-
-    def load_image(self, filepath, size_x=None, size_y=None):
-        fullname = resource_path(filepath)
-        # fullname = os.path.join('YLP-master\img', filepath)
-        # if not os.path.isfile(fullname):
-        #     logging.critical(f"Image file not found ('{fullname}')")
-        #     sys.exit()
-        self.img = pygame.image.load(fullname)
-
-        if size_x and size_y:
-            self.resize(size_x, size_y)
-
-        self.rect = self.img.get_rect()
-
-    def resize(self, new_width, new_height):
-        self.img = pygame.transform.scale(self.img, (new_width, new_height))
-
-
-class Collision:
-    def __init__(self):
-        pass
-    # if collision:
-    #    sprite1.rect.colliderect(sprite2.rect)
-
-
-class ModuleManager:
-    def init_modiles(self):
-        base_classes = (Sprite, Collision)
-        for cl in base_classes:
-            if issubclass(type(self), cl):
-                cl.__init__(self)
-
-
-# ================== GAME CLASSES:
-
-class Player(Sprite, ModuleManager):
-    def __init__(self):
         # инициализация:
         self.init_modiles()
         self.dash_speed = 0
@@ -139,6 +195,9 @@ class Player(Sprite, ModuleManager):
 
         # преднастройка модулей:
         #
+
+    def set_camera(self, camera):
+        self.camera = camera
 
     def get_image(self):
         # default (32, 64)
@@ -290,8 +349,10 @@ class Player(Sprite, ModuleManager):
                     self.en_y = self.max_speed * -1
 
     def update(self, scene, events):
-
-        scene.blit(self.get_image(), (self.pos_x, self.pos_y))  # (self.pos_x, self.pos_y))
+        self.rect.x = self.pos_x
+        self.rect.y = self.pos_y
+        scene.blit(self.get_image(), (self.pos_x - self.camera.offset.x, self.pos_y - self.camera.offset.y))
+        # (self.pos_x, self.pos_y))
 
         for ev in events:
             if ev.type == pygame.KEYDOWN:
@@ -377,6 +438,7 @@ class Level:
     def __init__(self):
         title = ''
         self.mapL1 = []
+        self.camera = None
 
     def gen(self, x, y):
         self.mapL1 = [[Sprite()] * x for i in range(y)]
@@ -389,9 +451,12 @@ class Level:
         for i in self.mapL1:
             n_j = 0
             for j in i:
-                scene.blit(j.img, (100*n_i, 100*n_j))
+                scene.blit(j.img, (100 * n_i - self.camera.offset.x, 100 * n_j - self.camera.offset.y))
                 n_j += 1
             n_i += 1
+
+    def set_camera(self, camera):
+        self.camera = camera
 
 '''
 class Camera:

@@ -17,7 +17,7 @@ class Player:
         self.timer = pygame.time.get_ticks()
 
         # анимации
-        my_spritesheet = Spritesheet('character.png')
+        my_spritesheet = Spritesheet('images/character/character.png')
         self.atk_len = 30
         self.first_atk = 7
         self.second_atk = 7 + 7
