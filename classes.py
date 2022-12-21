@@ -118,6 +118,7 @@ class Player(Sprite, ModuleManager):
         self.hp = 5
         self.dash = False
         self.jump = False
+        self.sit_state = 0
         self.current_anim = 0
         self.timer = pygame.time.get_ticks()
         self.atk_timer = pygame.time.get_ticks()
@@ -127,6 +128,11 @@ class Player(Sprite, ModuleManager):
 
         # анимации
         my_spritesheet = Spritesheet('images/character/character.png')
+        sit = Spritesheet('images/character/char_sit.png')
+        self.all_sit_len = 156
+        self.sit_len = 98
+        self.stand_up_len = 29
+        self.sit_down_len = 29
         self.dash_len = 3
         self.dash_count = 0
         self.dash_need = 3
@@ -137,6 +143,9 @@ class Player(Sprite, ModuleManager):
         self.walk_len = 12
         self.SB_len = 15
         self.all_dash_len = 16
+        self.sit = []
+        self.stand_up = []
+        self.sit_down = []
         self.atk_up = []
         self.atk_down = []
         self.atk_right = []
@@ -183,6 +192,13 @@ class Player(Sprite, ModuleManager):
             im = pygame.transform.scale2x(my_spritesheet.parse_sprite('9.' + str(i) + '.png'))
             self.dash_right.append(im)
             self.dash_left.append(pygame.transform.flip(im, True, False))
+        for i in range(self.all_sit_len):
+            if i < self.sit_down_len:
+                self.sit_down.append(pygame.transform.scale2x(sit.parse_sprite(str(i) + '.png')))
+            elif i < self.sit_len:
+                self.sit.append(pygame.transform.scale2x(sit.parse_sprite(str(i) + '.png')))
+            else:
+                break
         # инициализация:
         self.init_modiles()
         self.dash_speed = 0
@@ -224,6 +240,8 @@ class Player(Sprite, ModuleManager):
             surf.blit(self.current_image, (200 - 20, 200 - 32))
         elif self.current_image in self.dash_back:
             surf.blit(self.current_image, (200 - 25, 200 - 32))
+        elif self.current_image in self.sit or self.current_image in self.sit_down:
+            surf.blit(self.current_image, (200 - 16 * 2, 200 - 16 * 2))
         else:
             surf.blit(self.current_image, (200 - 8 * 2, 200 - 16 * 2))
         return surf
@@ -296,8 +314,36 @@ class Player(Sprite, ModuleManager):
                     self.dash_count = 0
                     return
 
+    def sit_image(self):
+        if self.sit_state == 1:
+            if pygame.time.get_ticks() - self.timer > 40:
+                self.current_anim += 1
+                self.timer = pygame.time.get_ticks()
+                if self.current_anim < self.sit_down_len:
+                    self.current_image = self.sit_down[self.current_anim]
+                else:
+                    self.sit_state = 2
+                    self.current_anim = 0
+        elif self.sit_state == 2:
+            if pygame.time.get_ticks() - self.timer > 40:
+                self.timer = pygame.time.get_ticks()
+                self.current_anim += 1
+                self.current_anim %= len(self.sit) - 1
+                self.current_image = self.sit[self.current_anim]
+        elif self.sit_state == 3:
+            if pygame.time.get_ticks() - self.timer > 40:
+                self.current_anim += 1
+                self.timer = pygame.time.get_ticks()
+                if self.current_anim < self.stand_up_len:
+                    self.current_image = self.sit_down[len(self.sit_down) - self.current_anim]
+                else:
+                    self.sit_state = 0
+                    self.current_anim = 0
+
     def animate(self):
-        if self.atk_state > 0:
+        if self.sit_state != 0:
+            self.sit_image()
+        elif self.atk_state > 0:
             if self.current_anim >= self.first_atk and self.atk_state > 1:
                 if self.current_anim >= self.second_atk and self.atk_state > 2:
                     if self.current_anim >= self.third_atk - 1:
@@ -327,6 +373,10 @@ class Player(Sprite, ModuleManager):
             self.walk_image()
         else:
             self.current_image = self.stand[self.direction]
+            if pygame.time.get_ticks() - self.timer > 5000 and not self.sit_state:
+                self.sit_state = 1
+                self.timer = pygame.time.get_ticks()
+                self.current_anim = 0
 
     def move(self, right, down):
         if self.dash:
@@ -356,6 +406,9 @@ class Player(Sprite, ModuleManager):
 
         for ev in events:
             if ev.type == pygame.KEYDOWN:
+                if self.sit_state == 2:
+                    self.sit_state = 3
+                    self.current_anim = 0
                 if ev.key == pygame.K_SPACE:
                     if pygame.time.get_ticks() - self.atk_timer >= 150:
                         if self.atk_state == 0:
@@ -416,22 +469,23 @@ class Player(Sprite, ModuleManager):
             self.moving = False
 
         self.move(self.move_x, self.move_y)
-        self.pos_x += self.en_x
-        if not self.move_x:
-            if self.en_x > self.braking:
-                self.en_x -= self.braking
-            elif self.en_x < self.braking * -1:
-                self.en_x += self.braking
-            else:
-                self.en_x = 0
-        self.pos_y += self.en_y
-        if not self.move_y:
-            if self.en_y > self.braking:
-                self.en_y -= self.braking
-            elif self.en_y < self.braking * -1:
-                self.en_y += self.braking
-            else:
-                self.en_y = 0
+        if not self.sit_state:
+            self.pos_x += self.en_x
+            if not self.move_x:
+                if self.en_x > self.braking:
+                    self.en_x -= self.braking
+                elif self.en_x < self.braking * -1:
+                    self.en_x += self.braking
+                else:
+                    self.en_x = 0
+            self.pos_y += self.en_y
+            if not self.move_y:
+                if self.en_y > self.braking:
+                    self.en_y -= self.braking
+                elif self.en_y < self.braking * -1:
+                    self.en_y += self.braking
+                else:
+                    self.en_y = 0
 
 
 class Level:
