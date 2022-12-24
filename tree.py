@@ -64,7 +64,7 @@ def split_rect(rect, options):
 
     min_split_size = 2 * padding + min_wall_size
 
-    # we don't want to split too small reactangle
+    # we don't want to split too small rectangle
     if rect.width < 2 * min_split_size or rect.height < 2 * min_split_size:
         raise SplitRectangleError()
 

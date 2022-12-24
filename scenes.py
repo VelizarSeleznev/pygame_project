@@ -58,6 +58,8 @@ class Scenes(Vars):
 
         # СЦЕНА:
         print('test area!')
+        stones = cor_level.get_blocks()
+        self.player.timer = pygame.time.get_ticks()
         # ЦИКЛ:
         while running:
             clock.tick(self.fps)
@@ -74,6 +76,7 @@ class Scenes(Vars):
             # дергаем обновления-отрисовку объектов:
             cor_level.update(self.sc)
             self.player.update(self.sc, events)
+            self.player.collide(stones)
             self.camera.scroll()
 
             pygame.display.update()

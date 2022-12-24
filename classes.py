@@ -14,6 +14,22 @@ def resource_path(relative):
 
 
 # ================== BASE CLASSES:
+class Block(pygame.sprite.Sprite):
+    def __init__(self, x, y, b_type=0, size=150):
+        super().__init__()
+        self.images = ["test_wall_block.png"]
+        fullname = resource_path(self.images[b_type])
+        self.image = pygame.image.load(fullname)
+        self.resize(size, size)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.mask = pygame.mask.from_surface(self.image)
+
+    def resize(self, new_width, new_height):
+        self.image = pygame.transform.scale(self.image, (new_width, new_height))
+
+
 class CamScroll(ABC):
     def __init__(self, camera, player):
         self.camera = camera
@@ -89,16 +105,9 @@ class Sprite:
         self.img = pygame.transform.scale(self.img, (new_width, new_height))
 
 
-class Collision:
-    def __init__(self):
-        pass
-    # if collision:
-    #    sprite1.rect.colliderect(sprite2.rect)
-
-
 class ModuleManager:
     def init_modiles(self):
-        base_classes = (Sprite, Collision)
+        base_classes = [Sprite]
         for cl in base_classes:
             if issubclass(type(self), cl):
                 cl.__init__(self)
@@ -106,8 +115,9 @@ class ModuleManager:
 
 # ================== GAME CLASSES:
 
-class Player(Sprite, ModuleManager):
+class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
     def __init__(self):
+        super().__init__()
         # состояние
         self.directions_x = {-1: 'left', 1: 'right'}
         self.directions_y = {-1: 'up', 1: 'down'}
@@ -168,6 +178,8 @@ class Player(Sprite, ModuleManager):
                       'right': pygame.transform.scale2x(im),
                       'left': pygame.transform.scale2x(pygame.transform.flip(im, True, False))}
         self.current_image = self.stand['down']
+        self.image = self.stand['down']
+        self.mask = None
         for i in range(self.atk_len):
             self.atk_up.append(pygame.transform.scale2x(my_spritesheet.parse_sprite('5.' + str(i) + '.png')))
             self.atk_down.append(pygame.transform.scale2x(my_spritesheet.parse_sprite('4.' + str(i) + '.png')))
@@ -202,12 +214,15 @@ class Player(Sprite, ModuleManager):
         # инициализация:
         self.init_modiles()
         self.dash_speed = 0
-        self.pos_x = self.pos_y = 0
+        self.pos_x = self.pos_y = 400
         self.en_x = self.en_y = 0  # инерция
         self.max_speed = 7
         self.en_delta = 0.5
         self.braking = 0.8  # скорость торможения
         self.move_y = self.move_x = 0
+        self.rect = self.image.get_rect()
+        self.rect.x = 400
+        self.rect.y = 400
 
         # преднастройка модулей:
         #
@@ -244,7 +259,17 @@ class Player(Sprite, ModuleManager):
             surf.blit(self.current_image, (200 - 16 * 2, 200 - 16 * 2))
         else:
             surf.blit(self.current_image, (200 - 8 * 2, 200 - 16 * 2))
+        self.image = surf
+        self.mask = pygame.mask.from_surface(surf)
+        self.rect = self.image.get_rect()
+        self.rect.x = self.pos_x
+        self.rect.y = self.pos_y
         return surf
+
+    def collide(self, sprites):
+        for i in sprites:
+            if pygame.sprite.collide_mask(self, i):
+                print('aaaaaaaa')
 
     def atk_image(self):
         if pygame.time.get_ticks() - self.timer > 60:
@@ -488,14 +513,35 @@ class Player(Sprite, ModuleManager):
                     self.en_y = 0
 
 
+# class Collision(pygame.sprite.Sprite):
+#     def __init__(self, player):
+#         super().__init__()
+#         self.player = player
+#         self.image = player.image
+#         self.mask = pygame.mask.from_surface(self.image)
+#         self.rect = self.image.get_rect()
+#
+#     def collide(self, sprites):
+#         rect = self.player.get_image().rect
+#         self.mask = pygame.mask.from_surface(self.player.get_image())
+#         for i in sprites:
+#             if abs(rect.x - i.rect.x) < 100 or abs(rect.y - i.rect.y) < 100:
+#                 if pygame.sprite.collide_mask(self, i):
+#                     pass
+
+
 class Level:
     def __init__(self):
         self.raw_map = []
         self.camera = None
+        self.size = 150
         stone = Sprite()
-        stone.load_image("test_wall_block.png", 100, 100)
+        stone.load_image("test_wall_block.png", self.size, self.size)
         self.stone_image = stone.img
-        self.map = None
+        self.image = None
+        self.rect = None
+        self.mask = None
+        self.stones = []
 
     def gen(self, mappath):
         with open(mappath, 'r') as f:
@@ -503,15 +549,20 @@ class Level:
             for line in lines:
                 line = list(line.strip('\n'))
                 self.raw_map.append(line)
-        self.map = pygame.surface.Surface((len(self.raw_map) * 100, len(self.raw_map[0]) * 100))
+        self.image = pygame.surface.Surface((len(self.raw_map) * self.size, len(self.raw_map[0]) * self.size))
         for i, a in enumerate(self.raw_map):
             for j, b in enumerate(a):
                 if self.raw_map[i][j] == '0':
-                    self.map.blit(self.stone_image, (100 * i, 100 * j))
+                    self.image.blit(self.stone_image, (self.size * i, self.size * j))
+                    self.stones.append(Block(self.size * i, self.size * j, 0, self.size))
+        self.rect = self.image.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
 
     def update(self, scene):
-        scene.blit(self.map, (-self.camera.offset.x, -self.camera.offset.y))
-        scene.blit(self.map, (-self.camera.offset.x, -self.camera.offset.y))
+        scene.blit(self.image, (-self.camera.offset.x, -self.camera.offset.y))
 
     def set_camera(self, camera):
         self.camera = camera
+
+    def get_blocks(self):
+        return self.stones
