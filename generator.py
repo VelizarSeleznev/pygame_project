@@ -76,9 +76,22 @@ def update_rooms(node):
             y = c1[1]
             for x in range(c1[0], c2[0]):
                 MAP_ARRAY[y][x] = "2"
-
-    update_rooms(node.left)
-    update_rooms(node.right)
+    flag = True
+    while flag:
+        try:
+            update_rooms(node.left)
+        except RecursionError:
+            print('.', end='')
+        finally:
+            flag = False
+    flag = True
+    while flag:
+        try:
+            update_rooms(node.right)
+        except RecursionError:
+            print('.', end='')
+        finally:
+            flag = False
 
 
 update_rooms(tree)
