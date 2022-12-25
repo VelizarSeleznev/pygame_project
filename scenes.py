@@ -25,6 +25,14 @@ class Scenes(Vars):
                 if ev.type == pygame.QUIT:
                     self.loop_running = False  # выход из цикла отрисовки/логики текущего
                     self.prog_running = False
+                if ev.type == pygame.JOYDEVICEADDED:
+                    joy = pygame.joystick.Joystick(ev.device_index)
+                    self.joysticks[joy.get_instance_id()] = joy
+                    print(f"Joystick {joy.get_instance_id()} connencted")
+
+                if ev.type == pygame.JOYDEVICEREMOVED:
+                    del self.joysticks[ev.instance_id]
+                    print(f"Joystick {ev.instance_id} disconnected")
             # отрисовка кадра:
             self.sc.fill((0, 0, 0))
             pygame.draw.circle(self.sc, (255, 0, 0), (300, 300), 20)
@@ -49,6 +57,8 @@ class Scenes(Vars):
         follow = Follow(self.camera, self.player)
         self.camera.set_method(follow)
         self.player.set_camera(self.camera)
+        if self.joysticks:
+            self.player.set_joystick(True)
         # self.player.load_image('test_player.png', 100, 100)
         # all_sprites.add(self.player)
 
@@ -70,6 +80,14 @@ class Scenes(Vars):
                 if ev.type == pygame.QUIT:
                     running = False  # выход из цикла отрисовки/логики текущего
                     self.prog_running = False
+                if ev.type == pygame.JOYDEVICEADDED:
+                    joy = pygame.joystick.Joystick(ev.device_index)
+                    self.joysticks[joy.get_instance_id()] = joy
+                    print(f"Joystick {joy.get_instance_id()} connencted")
+
+                if ev.type == pygame.JOYDEVICEREMOVED:
+                    del self.joysticks[ev.instance_id]
+                    print(f"Joystick {ev.instance_id} disconnected")
             # ОТРИСОВКА КАДРА:
             self.player.animate()
             self.sc.fill((0, 0, 0))

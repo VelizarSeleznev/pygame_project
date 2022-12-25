@@ -119,6 +119,8 @@ class ModuleManager:
 class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
     def __init__(self):
         super().__init__()
+        self.joystick = None
+        self.camera = None
         # состояние
         self.directions_x = {-1: 'left', 1: 'right'}
         self.directions_y = {-1: 'up', 1: 'down'}
@@ -224,8 +226,8 @@ class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
         self.rect.x = self.pos_x + 200 - 8 * 2
         self.rect.y = self.pos_y + 200 - 16 * 2
 
-        # преднастройка модулей:
-        #
+    def set_joystick(self, joy):
+        self.joystick = joy
 
     def set_camera(self, camera):
         self.camera = camera
@@ -448,13 +450,29 @@ class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
         self.rect.y = self.pos_y + 200 - 16 * 2
         scene.blit(self.get_image(), (self.pos_x - self.camera.offset.x, self.pos_y - self.camera.offset.y))
         # (self.pos_x, self.pos_y))
-
+        if self.joystick:
+            if pygame.joystick.Joystick(0).get_axis(0) >= 0.2:
+                if self.atk_state == 0:
+                    self.move_x = 1
+            elif pygame.joystick.Joystick(0).get_axis(0) <= -0.2:
+                if self.atk_state == 0:
+                    self.move_x = -1
+            else:
+                self.move_x = 0
+            if pygame.joystick.Joystick(0).get_axis(1) >= 0.2:
+                if self.atk_state == 0:
+                    self.move_y = 1
+            elif pygame.joystick.Joystick(0).get_axis(1) <= -0.2:
+                if self.atk_state == 0:
+                    self.move_y = -1
+            else:
+                self.move_y = 0
         for ev in events:
-            if ev.type == pygame.KEYDOWN:
+            if ev.type == pygame.JOYBUTTONDOWN:
                 if self.sit_state == 2:
                     self.sit_state = 3
                     self.current_anim = 0
-                if ev.key == pygame.K_SPACE:
+                if ev.button == 3 and not self.dash:
                     if pygame.time.get_ticks() - self.atk_timer >= 150:
                         if self.atk_state == 0:
                             self.current_anim = 0
@@ -462,7 +480,61 @@ class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
                         self.moving = False
                         self.move_y = 0
                         self.move_x = 0
-                if ev.key == pygame.K_LSHIFT:
+                if ev.button == 10 and not self.atk_state:
+                    if self.dash_count <= 10:
+                        self.dash_count = 0
+                        self.dash = True
+                        self.current_anim = 0
+                        if not self.moving:
+                            if self.direction == 'up':
+                                self.dash_dir_y = -1
+                                self.dash_dir_x = 0
+                            elif self.direction == 'down':
+                                self.dash_dir_y = 1
+                                self.dash_dir_x = 0
+                            elif self.direction == 'right':
+                                self.dash_dir_x = 1
+                                self.dash_dir_y = 0
+                            else:
+                                self.dash_dir_x = -1
+                                self.dash_dir_y = 0
+                        else:
+                            self.dash_dir_y = self.move_y
+                            self.dash_dir_x = self.move_x
+                if ev.button == 11:
+                    if self.atk_state == 0:
+                        self.move_y = -1
+                elif ev.button == 12:
+                    if self.atk_state == 0:
+                        self.move_y = 1
+                if ev.button == 13:
+                    if self.atk_state == 0:
+                        self.move_x = -1
+                elif ev.button == 14:
+                    if self.atk_state == 0:
+                        self.move_x = 1
+            if ev.type == pygame.JOYBUTTONUP:
+                if ev.button == 11:
+                    self.move_y = 0
+                elif ev.button == 12:
+                    self.move_y = 0
+                if ev.button == 13:
+                    self.move_x = 0
+                elif ev.button == 14:
+                    self.move_x = 0
+            if ev.type == pygame.KEYDOWN:
+                if self.sit_state == 2:
+                    self.sit_state = 3
+                    self.current_anim = 0
+                if ev.key == pygame.K_SPACE and not self.dash:
+                    if pygame.time.get_ticks() - self.atk_timer >= 150:
+                        if self.atk_state == 0:
+                            self.current_anim = 0
+                        self.atk_state += 1
+                        self.moving = False
+                        self.move_y = 0
+                        self.move_x = 0
+                if ev.key == pygame.K_LSHIFT and not self.atk_state:
                     if self.dash_count <= 10:
                         self.dash_count = 0
                         self.dash = True

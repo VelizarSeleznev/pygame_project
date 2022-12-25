@@ -30,6 +30,7 @@ class Vars:
         self.sc = None  # window
         self.corSceneNum = 0  # current scene number
         self.player = None
+        self.joysticks = {}
 
         self.prog_running = True  # running program (scene switching loop)
         self.loop_running = True  # running render/logic loop
