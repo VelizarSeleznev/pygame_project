@@ -3,7 +3,7 @@ from PIL import Image
 
 
 def rgb(tile_sign):
-    if tile_sign == '0' or tile_sign == '3':
+    if tile_sign in "03456":
         return 118, 165, 204
     if tile_sign == '1':
         return 74, 103, 127

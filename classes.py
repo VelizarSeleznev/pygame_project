@@ -15,10 +15,11 @@ def resource_path(relative):
 
 # ================== BASE CLASSES:
 class Block(pygame.sprite.Sprite):
-    def __init__(self, x, y, b_type=0, size=150):
+    def __init__(self, x, y, b_type, size=150):
         super().__init__()
+        self.direction = b_type
         self.images = ["test_wall_block.png"]
-        fullname = resource_path(self.images[b_type])
+        fullname = resource_path(self.images[0])
         self.image = pygame.image.load(fullname)
         self.resize(size, size)
         self.rect = self.image.get_rect()
@@ -265,18 +266,30 @@ class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
     def collide(self, sprites):
         for i in sprites:
             if pygame.sprite.collide_rect(self, i):
-                if (self.en_x > 0 and not self.dash) or (self.dash_dir_x > 0 and self.dash) or self.direction == 'right':
-                    self.rect.right = i.rect.left
-                    self.pos_x = self.rect.x - 200 + 16
-                if (self.en_x < 0 and not self.dash) or (self.dash_dir_x < 0 and self.dash) or self.direction == 'left':
+                if i.direction == 3:
+                    self.rect.top = i.rect.bottom
+                    self.pos_y = self.rect.y - 200 + 32
+                if i.direction == 4:
+                    self.rect.bottom = i.rect.top
+                    self.pos_y = self.rect.y - 200 + 32
+                if i.direction == 5:
                     self.rect.left = i.rect.right
                     self.pos_x = self.rect.x - 200 + 16
-                if (self.en_y > 0 and not self.dash) or (self.dash_dir_y > 0 and self.dash) or self.direction == 'down':
-                    self.rect.bottom = i.rect.top
-                    self.pos_y = self.rect.y - 200 + 16
-                if (self.en_y < 0 and not self.dash) or (self.dash_dir_y < 0 and self.dash) or self.direction == 'up':
-                    self.rect.top = i.rect.bottom
-                    self.pos_y = self.rect.y - 200 + 16
+                if i.direction == 6:
+                    self.rect.right = i.rect.left
+                    self.pos_x = self.rect.x - 200 + 16
+# if (self.en_x > 0 and not self.dash) or (self.dash_dir_x > 0 and self.dash) or self.direction == 'right':
+#     self.rect.right = i.rect.left
+#     self.pos_x = self.rect.x - 200 + 16
+# if (self.en_x < 0 and not self.dash) or (self.dash_dir_x < 0 and self.dash) or self.direction == 'left':
+#     self.rect.left = i.rect.right
+#     self.pos_x = self.rect.x - 200 + 16
+# if (self.en_y > 0 and not self.dash) or (self.dash_dir_y > 0 and self.dash) or self.direction == 'down':
+#     self.rect.bottom = i.rect.top
+#     self.pos_y = self.rect.y - 200 + 16
+# if (self.en_y < 0 and not self.dash) or (self.dash_dir_y < 0 and self.dash) or self.direction == 'up':
+#     self.rect.top = i.rect.bottom
+#     self.pos_y = self.rect.y - 200 + 16
 
     def atk_image(self):
         if pygame.time.get_ticks() - self.timer > 60:
@@ -559,9 +572,11 @@ class Level:
         self.image = pygame.surface.Surface((len(self.raw_map) * self.size, len(self.raw_map[0]) * self.size))
         for i, a in enumerate(self.raw_map):
             for j, b in enumerate(a):
-                if self.raw_map[i][j] == '0':
+                if self.raw_map[i][j] in '03456':
+                    if self.raw_map[i][j] in '3456':
+                        self.stones.append(Block(self.size * i, self.size * j, int(self.raw_map[i][j]), self.size))
                     self.image.blit(self.stone_image, (self.size * i, self.size * j))
-                    self.stones.append(Block(self.size * i, self.size * j, 0, self.size))
+        self.image.set_colorkey((0, 0, 0))
         self.rect = self.image.get_rect()
         self.mask = pygame.mask.from_surface(self.image)
 

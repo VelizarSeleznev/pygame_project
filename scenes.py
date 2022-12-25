@@ -54,7 +54,7 @@ class Scenes(Vars):
 
         cor_level = Level()
         cor_level.set_camera(self.camera)
-        cor_level.gen('maps/level1.map')
+        cor_level.gen('maps/level3.map')
 
         # СЦЕНА:
         print('test area!')
@@ -74,10 +74,10 @@ class Scenes(Vars):
             self.player.animate()
             self.sc.fill((0, 0, 0))
             # дергаем обновления-отрисовку объектов:
-            cor_level.update(self.sc)
             self.player.update(self.sc, events)
             self.player.collide(stones)
             self.camera.scroll()
+            cor_level.update(self.sc)
 
             pygame.display.update()
             # all_sprites.draw(self.sc)

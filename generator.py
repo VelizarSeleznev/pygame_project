@@ -54,12 +54,12 @@ def update_rooms(node):
             if MAP_ARRAY[y][room.x - 1] == "0":
                 MAP_ARRAY[y][room.x - 1] = "3"
             if MAP_ARRAY[y][room.x + room.width] == "0":
-                MAP_ARRAY[y][room.x + room.width] = "3"
+                MAP_ARRAY[y][room.x + room.width] = "4"
         for x in range(room.x, room.x + room.width):
             if MAP_ARRAY[room.y - 1][x] == "0":
-                MAP_ARRAY[room.y - 1][x] = "3"
+                MAP_ARRAY[room.y - 1][x] = "5"
             if MAP_ARRAY[room.y + room.height][x] == "0":
-                MAP_ARRAY[room.y + room.height][x] = "3"
+                MAP_ARRAY[room.y + room.height][x] = "6"
     else:
         # create path between leaf's centers (nodes not rooms!)
         l1 = node.left.data
@@ -71,10 +71,18 @@ def update_rooms(node):
         if c1[0] == c2[0]:
             x = c1[0]
             for y in range(c1[1], c2[1]):
+                if MAP_ARRAY[y][x - 1] not in "12":
+                    MAP_ARRAY[y][x - 1] = "3"
+                if MAP_ARRAY[y][x + 1] not in "12":
+                    MAP_ARRAY[y][x + 1] = "4"
                 MAP_ARRAY[y][x] = "2"
         if c1[1] == c2[1]:
             y = c1[1]
             for x in range(c1[0], c2[0]):
+                if MAP_ARRAY[y - 1][x] not in "12":
+                    MAP_ARRAY[y - 1][x] = "5"
+                if MAP_ARRAY[y + 1][x] not in "12":
+                    MAP_ARRAY[y + 1][x] = "6"
                 MAP_ARRAY[y][x] = "2"
     flag = True
     while flag:
