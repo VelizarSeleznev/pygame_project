@@ -50,6 +50,16 @@ def update_rooms(node):
         for x in range(room.x, room.x + room.width):
             for y in range(room.y, room.y + room.height):
                 MAP_ARRAY[y][x] = "1"
+        for y in range(room.y, room.y + room.height):
+            if MAP_ARRAY[y][room.x - 1] == "0":
+                MAP_ARRAY[y][room.x - 1] = "3"
+            if MAP_ARRAY[y][room.x + room.width] == "0":
+                MAP_ARRAY[y][room.x + room.width] = "3"
+        for x in range(room.x, room.x + room.width):
+            if MAP_ARRAY[room.y - 1][x] == "0":
+                MAP_ARRAY[room.y - 1][x] = "3"
+            if MAP_ARRAY[room.y + room.height][x] == "0":
+                MAP_ARRAY[room.y + room.height][x] = "3"
     else:
         # create path between leaf's centers (nodes not rooms!)
         l1 = node.left.data

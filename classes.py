@@ -134,7 +134,6 @@ class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
         self.atk_timer = pygame.time.get_ticks()
         self.dash_dir_x = 0
         self.dash_dir_y = 0
-        self.rect = pygame.Rect((0, 0, 200, 200))
 
         # анимации
         my_spritesheet = Spritesheet('images/character/character.png')
@@ -220,9 +219,9 @@ class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
         self.en_delta = 0.5
         self.braking = 0.8  # скорость торможения
         self.move_y = self.move_x = 0
-        self.rect = self.image.get_rect()
-        self.rect.x = 400
-        self.rect.y = 400
+        self.rect = pygame.Rect((0, 0, 32, 64))
+        self.rect.x = self.pos_x + 200 - 8 * 2
+        self.rect.y = self.pos_y + 200 - 16 * 2
 
         # преднастройка модулей:
         #
@@ -261,15 +260,23 @@ class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
             surf.blit(self.current_image, (200 - 8 * 2, 200 - 16 * 2))
         self.image = surf
         self.mask = pygame.mask.from_surface(surf)
-        self.rect = self.image.get_rect()
-        self.rect.x = self.pos_x
-        self.rect.y = self.pos_y
         return surf
 
     def collide(self, sprites):
         for i in sprites:
-            if pygame.sprite.collide_mask(self, i):
-                print('aaaaaaaa')
+            if pygame.sprite.collide_rect(self, i):
+                if (self.en_x > 0 and not self.dash) or (self.dash_dir_x > 0 and self.dash) or self.direction == 'right':
+                    self.rect.right = i.rect.left
+                    self.pos_x = self.rect.x - 200 + 16
+                if (self.en_x < 0 and not self.dash) or (self.dash_dir_x < 0 and self.dash) or self.direction == 'left':
+                    self.rect.left = i.rect.right
+                    self.pos_x = self.rect.x - 200 + 16
+                if (self.en_y > 0 and not self.dash) or (self.dash_dir_y > 0 and self.dash) or self.direction == 'down':
+                    self.rect.bottom = i.rect.top
+                    self.pos_y = self.rect.y - 200 + 16
+                if (self.en_y < 0 and not self.dash) or (self.dash_dir_y < 0 and self.dash) or self.direction == 'up':
+                    self.rect.top = i.rect.bottom
+                    self.pos_y = self.rect.y - 200 + 16
 
     def atk_image(self):
         if pygame.time.get_ticks() - self.timer > 60:
@@ -424,8 +431,8 @@ class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
                     self.en_y = self.max_speed * -1
 
     def update(self, scene, events):
-        self.rect.x = self.pos_x
-        self.rect.y = self.pos_y
+        self.rect.x = self.pos_x + 200 - 8 * 2
+        self.rect.y = self.pos_y + 200 - 16 * 2
         scene.blit(self.get_image(), (self.pos_x - self.camera.offset.x, self.pos_y - self.camera.offset.y))
         # (self.pos_x, self.pos_y))
 
