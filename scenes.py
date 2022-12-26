@@ -18,7 +18,7 @@ class Scenes(Vars):
 
         # ЦИКЛ:
         while self.loop_running:
-            clock.tick(self.fps)
+            clock.tick(fps)
             # обработка событий:
             events = pygame.event.get()
             for ev in events:
@@ -74,7 +74,7 @@ class Scenes(Vars):
         self.player.timer = pygame.time.get_ticks()
         # ЦИКЛ:
         while running:
-            clock.tick(self.fps)
+            clock.tick(fps)
             # ОБРАБОТКА СОБЫТИЙ:
             # собственные ("общие") события:
             events = pygame.event.get()
