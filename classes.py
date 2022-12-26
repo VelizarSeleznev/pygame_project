@@ -116,8 +116,53 @@ class ModuleManager:
 
 # ================== GAME CLASSES:
 
-class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
+
+class Enemy(pygame.sprite.Sprite):
     def __init__(self):
+        super().__init__()
+        self.current_anim = 0
+        self.walk = []
+        self.atk = []
+        self.death = []
+        self.idle = []
+        self.slash = []
+        self.x_speed = 0
+        self.y_speed = 0
+        for i in range(48):
+            path = 'images/enemies/spr_LeaperAttack' + str(i) + '.png'
+            path = resource_path(path)
+            img = pygame.image.load(path).convert()
+            img.set_colorkey((0, 0, 0))
+            self.atk.append(img)
+        for i in range(2):
+            path = 'images/enemies/spr_LeaperDeath' + str(i) + '.png'
+            path = resource_path(path)
+            img = pygame.image.load(path).convert()
+            img.set_colorkey((0, 0, 0))
+            self.death.append(img)
+        for i in range(6):
+            path = 'images/enemies/spr_LeaperIdle' + str(i) + '.png'
+            path = resource_path(path)
+            img = pygame.image.load(path).convert()
+            img.set_colorkey((0, 0, 0))
+            self.idle.append(img)
+        for i in range(16):
+            path = 'images/enemies/spr_LeaperSlash' + str(i) + '.png'
+            path = resource_path(path)
+            img = pygame.image.load(path).convert()
+            img.set_colorkey((0, 0, 0))
+            self.slash.append(img)
+        for i in range(8):
+            path = 'images/enemies/spr_LeaperWalk' + str(i) + '.png'
+            path = resource_path(path)
+            img = pygame.image.load(path).convert()
+            img.set_colorkey((0, 0, 0))
+            self.walk.append(img)
+        self.image = self.idle[0]
+
+
+class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
+    def __init__(self, pos=(400, 400)):
         super().__init__()
         self.joystick = None
         self.camera = None
@@ -216,13 +261,18 @@ class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
         # инициализация:
         self.init_modiles()
         self.dash_speed = 0
-        self.pos_x = self.pos_y = 400
+        (self.pos_x, self.pos_y) = pos
         self.en_x = self.en_y = 0  # инерция
         self.max_speed = 7
         self.en_delta = 0.5
         self.braking = 0.8  # скорость торможения
         self.move_y = self.move_x = 0
         self.rect = pygame.Rect((0, 0, 32, 64))
+        self.rect.x = self.pos_x + 200 - 8 * 2
+        self.rect.y = self.pos_y + 200 - 16 * 2
+
+    def set_pos(self, pos):
+        (self.pos_x, self.pos_y) = pos
         self.rect.x = self.pos_x + 200 - 8 * 2
         self.rect.y = self.pos_y + 200 - 16 * 2
 
@@ -634,6 +684,7 @@ class Level:
         self.rect = None
         self.mask = None
         self.stones = []
+        self.player_pos = (400, 400)
 
     def gen(self, mappath):
         with open(mappath, 'r') as f:
@@ -648,6 +699,8 @@ class Level:
                     if self.raw_map[i][j] in '3456':
                         self.stones.append(Block(self.size * i, self.size * j, int(self.raw_map[i][j]), self.size))
                     self.image.blit(self.stone_image, (self.size * i, self.size * j))
+                if self.raw_map[i][j] in "@":
+                    self.player_pos = (i * self.size, j * self.size)
         self.image.set_colorkey((0, 0, 0))
         self.rect = self.image.get_rect()
         self.mask = pygame.mask.from_surface(self.image)
@@ -660,3 +713,6 @@ class Level:
 
     def get_blocks(self):
         return self.stones
+
+    def get_pos(self):
+        return self.player_pos

@@ -1,4 +1,5 @@
 import os
+import random
 
 from tree import (
     Rect,
@@ -15,8 +16,8 @@ DEFAULT_OPTIONS = {
     'min_area_percent': 0.3
 }
 
-MAP_WIDTH = 100
-MAP_HEIGHT = 100
+MAP_WIDTH = 50
+MAP_HEIGHT = 50
 
 SPLITS = 5
 
@@ -26,6 +27,7 @@ MAP_FORMAT = 'level{}.map'
 
 wrap_rect = Rect(0, 0, MAP_WIDTH, MAP_HEIGHT, DEFAULT_OPTIONS)
 tree = None
+fl = False
 while tree is None:
     try:
         tree = split_tree_of_rectangles(wrap_rect, SPLITS, DEFAULT_OPTIONS)
@@ -103,6 +105,13 @@ def update_rooms(node):
 
 
 update_rooms(tree)
+
+while True:
+    a = random.randrange(0, len(MAP_ARRAY) - 1)
+    b = random.randrange(0, len(MAP_ARRAY[0]) - 1)
+    if MAP_ARRAY[a][b] == "1":
+        MAP_ARRAY[a][b] = "@"
+        break
 
 if not os.path.exists(MAPS_PATH):
     os.mkdir(MAPS_PATH)
