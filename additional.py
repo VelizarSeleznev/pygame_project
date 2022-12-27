@@ -9,8 +9,10 @@ class Game(Scenes):
         # window initialization:
         pygame.init()
         pygame.display.set_caption(title)
-        self.sc = pygame.display.set_mode((width, height))
-
+        if self.sett_fullscreen:
+            self.sc = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        else:
+            self.sc = pygame.display.set_mode((width, height))
         while self.prog_running:  # scene switching cycle
             if self.corSceneNum == 0:
                 self.load_0_MainMenu()

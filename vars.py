@@ -9,6 +9,8 @@ import configparser
 import pygame
 import pygame_widgets
 from pygame_widgets.button import Button
+from pygame_widgets.dropdown import Dropdown
+from pygame_widgets.toggle import Toggle
 import pygame as p
 from abc import ABC, abstractmethod
 
@@ -25,6 +27,7 @@ fps = int(cfg["screen"]["fps"])
 width, height = int(cfg["screen"]["width"]), int(cfg["screen"]["height"])
 block_width, block_height = 150, 150  # размеры одной клетки
 title = cfg["screen"]["title"]
+sc_resolution = cfg["screen"]["resolution"].split('_')  # досутпные к настройке разрешения экрана
 
 class Vars:
     def __init__(self):
@@ -33,3 +36,5 @@ class Vars:
         self.joysticks = {}
         self.prog_running = True  # running program (scene switching loop)
         self.loop_running = True  # running render/logic loop
+        #  настройки:
+        self.sett_fullscreen = int(cfg["screen"]["fullscreen"])  # '0' / '1'
