@@ -2,6 +2,7 @@
 import pygame
 
 from classes import *
+from generator import create_map
 
 
 class Scenes(Vars):
@@ -165,12 +166,11 @@ class Scenes(Vars):
             self.player.set_joystick(True)
         # self.player.load_image('test_player.png', 100, 100)
         # all_sprites.add(self.player)
-
+        maps_n = create_map()
         cor_level = Level()
         cor_level.set_camera(self.camera)
-        cor_level.gen('maps/level3.map')
+        cor_level.gen('maps/level' + str(maps_n) + '.map')
         self.player.set_pos(cor_level.get_pos())
-        print(cor_level.get_pos())
 
         # СЦЕНА:
         print('test area!')
@@ -207,3 +207,15 @@ class Scenes(Vars):
             # all_sprites.draw(self.sc)
             # all_sprites.update()
             pygame.display.flip()
+        maps_path = './maps'
+        map_format = 'level{}.map'
+        image_format = 'level{}.png'
+        maps_files = [
+            f for f in os.listdir(maps_path)
+            if f.endswith('.map') and os.path.isfile(os.path.join(maps_path, f))
+        ]
+        maps_count = len(maps_files)
+        for i in range(maps_count):
+            os.remove(os.path.join(maps_path, map_format.format(i + 1)))
+            os.remove(os.path.join(maps_path, image_format.format(i + 1)))
+

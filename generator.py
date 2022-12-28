@@ -8,38 +8,7 @@ from tree import (
 )
 from preview import create_preview
 
-
-DEFAULT_OPTIONS = {
-    'padding': 1,
-    'min_wall_size': 2,
-    'min_walls_ratio': 0.4,
-    'min_area_percent': 0.3
-}
-
-MAP_WIDTH = 50
-MAP_HEIGHT = 50
-
-SPLITS = 5
-
-MAPS_PATH = './maps'
-MAP_FORMAT = 'level{}.map'
-
-
-wrap_rect = Rect(0, 0, MAP_WIDTH, MAP_HEIGHT, DEFAULT_OPTIONS)
-tree = None
-fl = False
-while tree is None:
-    try:
-        tree = split_tree_of_rectangles(wrap_rect, SPLITS, DEFAULT_OPTIONS)
-    except SplitRectangleError:
-        print('.', end='')
-
 MAP_ARRAY = []
-for y in range(0, MAP_HEIGHT):
-    row = []
-    for x in range(0, MAP_WIDTH):
-        row.append("0")
-    MAP_ARRAY.append(row)
 
 
 def update_rooms(node):
@@ -104,32 +73,65 @@ def update_rooms(node):
             flag = False
 
 
-update_rooms(tree)
+def create_map(m_w=50, m_h=50, options=None):
+    if options is None:
+        options = {
+            'padding': 1,
+            'min_wall_size': 2,
+            'min_walls_ratio': 0.4,
+            'min_area_percent': 0.3
+        }
+    default_options = options.copy()
 
-while True:
-    a = random.randrange(0, len(MAP_ARRAY) - 1)
-    b = random.randrange(0, len(MAP_ARRAY[0]) - 1)
-    if MAP_ARRAY[a][b] == "1":
-        MAP_ARRAY[a][b] = "@"
-        break
+    map_width = m_w
+    map_height = m_h
 
-if not os.path.exists(MAPS_PATH):
-    os.mkdir(MAPS_PATH)
+    splits = 5
 
-maps_files = [
-    f for f in os.listdir(MAPS_PATH)
-    if f.endswith('.map') and os.path.isfile(os.path.join(MAPS_PATH, f))
-]
-maps_count = len(maps_files)
+    maps_path = './maps'
+    map_format = 'level{}.map'
 
-new_map_path = os.path.join(MAPS_PATH, MAP_FORMAT.format(maps_count + 1))
-with open(new_map_path, 'w') as map_file:
-    for r in MAP_ARRAY:
-        for t in r:
-            map_file.write(t)
-        map_file.write('\n')
+    wrap_rect = Rect(0, 0, map_width, map_height, default_options)
+    tree = None
+    while tree is None:
+        try:
+            tree = split_tree_of_rectangles(wrap_rect, splits, default_options)
+        except SplitRectangleError:
+            print('.', end='')
 
-create_preview(new_map_path, MAP_WIDTH, MAP_HEIGHT, 2)
+    for y in range(0, map_height):
+        row = []
+        for x in range(0, map_width):
+            row.append("0")
+        MAP_ARRAY.append(row)
 
-print('\nSuccess: new map ({}x{}): {}'.format(MAP_WIDTH, MAP_HEIGHT, new_map_path))
-print('Saved maps: {}'.format(maps_count + 1))
+    update_rooms(tree)
+
+    while True:
+        a = random.randrange(0, len(MAP_ARRAY) - 1)
+        b = random.randrange(0, len(MAP_ARRAY[0]) - 1)
+        if MAP_ARRAY[a][b] == "1":
+            MAP_ARRAY[a][b] = "@"
+            break
+
+    if not os.path.exists(maps_path):
+        os.mkdir(maps_path)
+
+    maps_files = [
+        f for f in os.listdir(maps_path)
+        if f.endswith('.map') and os.path.isfile(os.path.join(maps_path, f))
+    ]
+    maps_count = len(maps_files)
+
+    new_map_path = os.path.join(maps_path, map_format.format(maps_count + 1))
+    with open(new_map_path, 'w') as map_file:
+        for r in MAP_ARRAY:
+            for t in r:
+                map_file.write(t)
+            map_file.write('\n')
+
+    create_preview(new_map_path, map_width, map_height, 2)
+
+    print('\nSuccess: new map ({}x{}): {}'.format(map_width, map_height, new_map_path))
+    print('Saved maps: {}'.format(maps_count + 1))
+    return maps_count + 1
