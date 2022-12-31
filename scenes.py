@@ -1,5 +1,4 @@
 # scenes.py
-import pygame
 
 from classes import *
 from generator import create_map
@@ -204,8 +203,6 @@ class Scenes(Vars):
             cor_level.update(self.sc)
 
             pygame.display.update()
-            # all_sprites.draw(self.sc)
-            # all_sprites.update()
             pygame.display.flip()
         maps_path = './maps'
         map_format = 'level{}.map'

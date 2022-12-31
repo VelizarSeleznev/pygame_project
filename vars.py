@@ -29,6 +29,7 @@ block_width, block_height = 150, 150  # размеры одной клетки
 title = cfg["screen"]["title"]
 sc_resolution = cfg["screen"]["resolution"].split('_')  # досутпные к настройке разрешения экрана
 
+
 class Vars:
     def __init__(self):
         self.sc = None  # window

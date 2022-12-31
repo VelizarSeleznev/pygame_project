@@ -7,6 +7,10 @@ from vars import *
 # будет иметь спрайт.
 
 
+def sgn(n):
+    return int(n / abs(n))
+
+
 def resource_path(relative):
     if hasattr(sys, "_MEIPASS"):
         return os.path.join(sys._MEIPASS, relative)
@@ -91,10 +95,6 @@ class Camera:
 class Sprite:
     def load_image(self, filepath, size_x=None, size_y=None):
         fullname = resource_path(filepath)
-        # fullname = os.path.join('YLP-master\img', filepath)
-        # if not os.path.isfile(fullname):
-        #     logging.critical(f"Image file not found ('{fullname}')")
-        #     sys.exit()
         self.img = pygame.image.load(fullname)
 
         if size_x and size_y:
@@ -263,13 +263,17 @@ class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
         self.dash_speed = 0
         (self.pos_x, self.pos_y) = pos
         self.en_x = self.en_y = 0  # инерция
-        self.max_speed = 7
+        self.max_speed_x = 7
+        self.max_speed_y = 7
+        self.k_speed = 7
         self.en_delta = 0.5
         self.braking = 0.8  # скорость торможения
         self.move_y = self.move_x = 0
         self.rect = pygame.Rect((0, 0, 32, 64))
         self.rect.x = self.pos_x + 200 - 8 * 2
         self.rect.y = self.pos_y + 200 - 16 * 2
+        self.just_dont_x = True
+        self.just_dont_y = True
 
     def set_pos(self, pos):
         (self.pos_x, self.pos_y) = pos
@@ -330,18 +334,6 @@ class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
                 if i.direction == 6:
                     self.rect.right = i.rect.left
                     self.pos_x = self.rect.x - 200 + 16
-# if (self.en_x > 0 and not self.dash) or (self.dash_dir_x > 0 and self.dash) or self.direction == 'right':
-#     self.rect.right = i.rect.left
-#     self.pos_x = self.rect.x - 200 + 16
-# if (self.en_x < 0 and not self.dash) or (self.dash_dir_x < 0 and self.dash) or self.direction == 'left':
-#     self.rect.left = i.rect.right
-#     self.pos_x = self.rect.x - 200 + 16
-# if (self.en_y > 0 and not self.dash) or (self.dash_dir_y > 0 and self.dash) or self.direction == 'down':
-#     self.rect.bottom = i.rect.top
-#     self.pos_y = self.rect.y - 200 + 16
-# if (self.en_y < 0 and not self.dash) or (self.dash_dir_y < 0 and self.dash) or self.direction == 'up':
-#     self.rect.top = i.rect.bottom
-#     self.pos_y = self.rect.y - 200 + 16
 
     def atk_image(self):
         if pygame.time.get_ticks() - self.timer > 60:
@@ -373,7 +365,7 @@ class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
 
     def dash_image(self):
         if self.dash_count < self.dash_need:
-            self.dash_speed = self.max_speed * 3
+            self.dash_speed = self.k_speed * 3
             if pygame.time.get_ticks() - self.timer > 30:
                 self.current_anim += 1
                 self.current_anim %= self.dash_len
@@ -480,44 +472,47 @@ class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
             self.en_x = self.dash_speed * self.dash_dir_x
             self.en_y = self.dash_speed * self.dash_dir_y
         else:
-            if abs(self.en_x) < self.max_speed:
+            if abs(self.en_x) < self.max_speed_x:
                 self.en_x += self.en_delta * right
             else:
                 if self.en_x > 0:
-                    self.en_x = self.max_speed
+                    self.en_x = self.max_speed_x
                 else:
-                    self.en_x = self.max_speed * -1
-            if abs(self.en_y) < self.max_speed:
+                    self.en_x = -self.max_speed_x
+            if abs(self.en_y) < self.max_speed_y:
                 self.en_y += self.en_delta * down
             else:
                 if self.en_y > 0:
-                    self.en_y = self.max_speed
+                    self.en_y = self.max_speed_y
                 else:
-                    self.en_y = self.max_speed * -1
+                    self.en_y = -self.max_speed_y
 
     def update(self, scene, events):
         self.rect.x = self.pos_x + 200 - 8 * 2
         self.rect.y = self.pos_y + 200 - 16 * 2
         scene.blit(self.get_image(), (self.pos_x - self.camera.offset.x, self.pos_y - self.camera.offset.y))
-        # (self.pos_x, self.pos_y))
-        if self.joystick:
-            if pygame.joystick.Joystick(0).get_axis(0) >= 0.2:
-                if self.atk_state == 0:
-                    self.move_x = 1
-            elif pygame.joystick.Joystick(0).get_axis(0) <= -0.2:
-                if self.atk_state == 0:
-                    self.move_x = -1
-            else:
-                self.move_x = 0
-            if pygame.joystick.Joystick(0).get_axis(1) >= 0.2:
-                if self.atk_state == 0:
-                    self.move_y = 1
-            elif pygame.joystick.Joystick(0).get_axis(1) <= -0.2:
-                if self.atk_state == 0:
-                    self.move_y = -1
-            else:
-                self.move_y = 0
         for ev in events:
+            if ev.type == pygame.JOYAXISMOTION:
+                if ev.axis == 0:
+                    if abs(ev.value) >= 0.2:
+                        if self.atk_state == 0:
+                            self.max_speed_x = abs(ev.value) * self.k_speed
+                            self.move_x = sgn(ev.value)
+                            self.just_dont_x = True
+                    elif self.just_dont_x:
+                        self.move_x = 0
+                        self.max_speed_x = 1 * self.k_speed
+                        self.just_dont_x = False
+                if ev.axis == 1:
+                    if abs(ev.value) >= 0.2:
+                        if self.atk_state == 0:
+                            self.max_speed_y = abs(ev.value) * self.k_speed
+                            self.move_y = sgn(ev.value)
+                            self.just_dont_y = True
+                    elif self.just_dont_y:
+                        self.move_y = 0
+                        self.max_speed_y = 1 * self.k_speed
+                        self.just_dont_y = False
             if ev.type == pygame.JOYBUTTONDOWN:
                 if self.sit_state == 2:
                     self.sit_state = 3
@@ -553,25 +548,33 @@ class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
                             self.dash_dir_x = self.move_x
                 if ev.button == 11:
                     if self.atk_state == 0:
+                        self.max_speed_y = 1 * self.k_speed
                         self.move_y = -1
                 elif ev.button == 12:
                     if self.atk_state == 0:
+                        self.max_speed_y = 1 * self.k_speed
                         self.move_y = 1
                 if ev.button == 13:
                     if self.atk_state == 0:
+                        self.max_speed_x = 1 * self.k_speed
                         self.move_x = -1
                 elif ev.button == 14:
                     if self.atk_state == 0:
+                        self.max_speed_x = 1 * self.k_speed
                         self.move_x = 1
             if ev.type == pygame.JOYBUTTONUP:
                 if ev.button == 11:
                     self.move_y = 0
+                    self.max_speed_y = 1 * self.k_speed
                 elif ev.button == 12:
                     self.move_y = 0
+                    self.max_speed_y = 1 * self.k_speed
                 if ev.button == 13:
                     self.move_x = 0
+                    self.max_speed_x = 1 * self.k_speed
                 elif ev.button == 14:
                     self.move_x = 0
+                    self.max_speed_x = 1 * self.k_speed
             if ev.type == pygame.KEYDOWN:
                 if self.sit_state == 2:
                     self.sit_state = 3
@@ -607,32 +610,44 @@ class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
                             self.dash_dir_x = self.move_x
                 if ev.key == pygame.K_w or ev.key == pygame.K_UP:
                     if self.atk_state == 0:
+                        print('up')
+                        self.max_speed_y = 1 * self.k_speed
                         self.move_y = -1
                 elif ev.key == pygame.K_s or ev.key == pygame.K_DOWN:
                     if self.atk_state == 0:
+                        print('down')
+                        self.max_speed_y = 1 * self.k_speed
                         self.move_y = 1
                 if ev.key == pygame.K_a or ev.key == pygame.K_LEFT:
                     if self.atk_state == 0:
+                        print('left')
+                        self.max_speed_x = 1 * self.k_speed
                         self.move_x = -1
                 elif ev.key == pygame.K_d or ev.key == pygame.K_RIGHT:
                     if self.atk_state == 0:
+                        print('right')
+                        self.max_speed_x = 1 * self.k_speed
                         self.move_x = 1
             elif ev.type == pygame.KEYUP:
                 if ev.key == pygame.K_w or ev.key == pygame.K_UP:
                     self.move_y = 0
+                    self.max_speed_y = 1 * self.k_speed
                 if ev.key == pygame.K_s or ev.key == pygame.K_DOWN:
                     self.move_y = 0
+                    self.max_speed_y = 1 * self.k_speed
                 if ev.key == pygame.K_a or ev.key == pygame.K_LEFT:
                     self.move_x = 0
+                    self.max_speed_x = 1 * self.k_speed
                 if ev.key == pygame.K_d or ev.key == pygame.K_RIGHT:
                     self.move_x = 0
-        if self.move_y:
+                    self.max_speed_x = 1 * self.k_speed
+        if abs(self.move_y) > 0:
             self.moving = True
             self.direction = self.directions_y[self.move_y]
-        if self.move_x:
+        if abs(self.move_x) > 0:
             self.moving = True
             self.direction = self.directions_x[self.move_x]
-        if not self.move_x and not self.move_y:
+        if self.move_x == 0 and self.move_y == 0:
             self.moving = False
 
         self.move(self.move_x, self.move_y)
@@ -653,23 +668,6 @@ class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
                     self.en_y += self.braking
                 else:
                     self.en_y = 0
-
-
-# class Collision(pygame.sprite.Sprite):
-#     def __init__(self, player):
-#         super().__init__()
-#         self.player = player
-#         self.image = player.image
-#         self.mask = pygame.mask.from_surface(self.image)
-#         self.rect = self.image.get_rect()
-#
-#     def collide(self, sprites):
-#         rect = self.player.get_image().rect
-#         self.mask = pygame.mask.from_surface(self.player.get_image())
-#         for i in sprites:
-#             if abs(rect.x - i.rect.x) < 100 or abs(rect.y - i.rect.y) < 100:
-#                 if pygame.sprite.collide_mask(self, i):
-#                     pass
 
 
 class Level:
