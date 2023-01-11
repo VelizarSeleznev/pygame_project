@@ -19,13 +19,13 @@ def resource_path(relative):
 
 # ================== BASE CLASSES:
 class Block(pygame.sprite.Sprite):
-    def __init__(self, x, y, b_type, size=150):
+    def __init__(self, x, y, b_type, size=(150, 150)):
         super().__init__()
         self.direction = b_type
         self.images = ["test_wall_block.png"]
         fullname = resource_path(self.images[0])
         self.image = pygame.image.load(fullname)
-        self.resize(size, size)
+        self.resize(size[0], size[1])
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -526,8 +526,7 @@ class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
                         self.move_y = 0
                         self.move_x = 0
                 if ev.button == 10 and not self.atk_state:
-                    if self.dash_count <= 10:
-                        self.dash_count = 0
+                    if self.dash_count == 0:
                         self.dash = True
                         self.current_anim = 0
                         if not self.moving:
@@ -588,8 +587,7 @@ class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
                         self.move_y = 0
                         self.move_x = 0
                 if ev.key == pygame.K_LSHIFT and not self.atk_state:
-                    if self.dash_count <= 10:
-                        self.dash_count = 0
+                    if self.dash_count == 0:
                         self.dash = True
                         self.current_anim = 0
                         if not self.moving:
@@ -610,22 +608,18 @@ class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
                             self.dash_dir_x = self.move_x
                 if ev.key == pygame.K_w or ev.key == pygame.K_UP:
                     if self.atk_state == 0:
-                        print('up')
                         self.max_speed_y = 1 * self.k_speed
                         self.move_y = -1
                 elif ev.key == pygame.K_s or ev.key == pygame.K_DOWN:
                     if self.atk_state == 0:
-                        print('down')
                         self.max_speed_y = 1 * self.k_speed
                         self.move_y = 1
                 if ev.key == pygame.K_a or ev.key == pygame.K_LEFT:
                     if self.atk_state == 0:
-                        print('left')
                         self.max_speed_x = 1 * self.k_speed
                         self.move_x = -1
                 elif ev.key == pygame.K_d or ev.key == pygame.K_RIGHT:
                     if self.atk_state == 0:
-                        print('right')
                         self.max_speed_x = 1 * self.k_speed
                         self.move_x = 1
             elif ev.type == pygame.KEYUP:
@@ -678,6 +672,8 @@ class Level:
         stone = Sprite()
         stone.load_image("test_wall_block.png", self.size, self.size)
         self.stone_image = stone.img
+        stone.load_image("test_wall_block.png", 100, 100)
+        self.stone_image_t = stone.img
         self.image = None
         self.rect = None
         self.mask = None
@@ -693,10 +689,36 @@ class Level:
         self.image = pygame.surface.Surface((len(self.raw_map) * self.size, len(self.raw_map[0]) * self.size))
         for i, a in enumerate(self.raw_map):
             for j, b in enumerate(a):
-                if self.raw_map[i][j] in '03456':
+                if self.raw_map[i][j] in '034567JLГ|-':
                     if self.raw_map[i][j] in '3456':
-                        self.stones.append(Block(self.size * i, self.size * j, int(self.raw_map[i][j]), self.size))
-                    self.image.blit(self.stone_image, (self.size * i, self.size * j))
+                        self.stones.append(Block(self.size * i, self.size * j, int(self.raw_map[i][j]), (self.size, self.size)))
+                        self.image.blit(self.stone_image, (self.size * i, self.size * j))
+                    elif self.raw_map[i][j] in "7":
+                        self.stones.append(Block(self.size * i, self.size * j, 6, (self.size, self.size)))
+                        self.stones.append(Block(self.size * i, self.size * j, 4, (self.size, self.size)))
+                        self.image.blit(self.stone_image_t, (self.size * i, self.size * j))
+                    elif self.raw_map[i][j] in "J":
+                        self.stones.append(Block(self.size * i, self.size * j, 5, (self.size, self.size)))
+                        self.stones.append(Block(self.size * i, self.size * j, 3, (self.size, self.size)))
+                        self.image.blit(self.stone_image_t, (self.size * i, self.size * j))
+                    elif self.raw_map[i][j] in "L":
+                        self.stones.append(Block(self.size * i, self.size * j, 6, (self.size, self.size)))
+                        self.stones.append(Block(self.size * i, self.size * j, 3, (self.size, self.size)))
+                        self.image.blit(self.stone_image_t, (self.size * i, self.size * j))
+                    elif self.raw_map[i][j] in "Г":
+                        self.stones.append(Block(self.size * i, self.size * j, 6, (self.size, self.size)))
+                        self.stones.append(Block(self.size * i, self.size * j, 3, (self.size, self.size)))
+                        self.image.blit(self.stone_image_t, (self.size * i, self.size * j))
+                    elif self.raw_map[i][j] in "-":
+                        self.stones.append((Block(self.size * i, self.size * j, 3, (10, self.size))))
+                        self.stones.append((Block(self.size * i + self.size - 10, self.size * j, 4, (10, self.size))))
+                        self.image.blit(self.stone_image, (self.size * i, self.size * j))
+                    elif self.raw_map[i][j] in "|":
+                        self.stones.append((Block(self.size * i, self.size * j, 5, (self.size, 10))))
+                        self.stones.append((Block(self.size * i, self.size * j + self.size - 10, 6, (self.size, 10))))
+                        self.image.blit(self.stone_image, (self.size * i, self.size * j))
+                    else:
+                        self.image.blit(self.stone_image, (self.size * i, self.size * j))
                 if self.raw_map[i][j] in "@":
                     self.player_pos = (i * self.size, j * self.size)
         self.image.set_colorkey((0, 0, 0))

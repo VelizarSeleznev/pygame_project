@@ -43,24 +43,52 @@ def update_rooms(node):
             x = c1[0]
             for y in range(c1[1], c2[1]):
                 if MAP_ARRAY[y][x - 1] not in "12":
-                    MAP_ARRAY[y][x - 1] = "3"
+                    if MAP_ARRAY[y][x - 1] in "4":
+                        MAP_ARRAY[y][x - 1] = "|"
+                    elif MAP_ARRAY[y][x - 1] in "5":
+                        MAP_ARRAY[y][x - 1] = "J"
+                    elif MAP_ARRAY[y][x - 1] in "6":
+                        MAP_ARRAY[y][x - 1] = "7"
+                    else:
+                        MAP_ARRAY[y][x - 1] = "3"
                 if MAP_ARRAY[y][x + 1] not in "12":
-                    MAP_ARRAY[y][x + 1] = "4"
+                    if MAP_ARRAY[y][x + 1] in "3":
+                        MAP_ARRAY[y][x + 1] = "|"
+                    elif MAP_ARRAY[y][x + 1] in "5":
+                        MAP_ARRAY[y][x + 1] = "L"
+                    elif MAP_ARRAY[y][x + 1] in "6":
+                        MAP_ARRAY[y][x + 1] = "Г"
+                    else:
+                        MAP_ARRAY[y][x + 1] = "4"
                 MAP_ARRAY[y][x] = "2"
         if c1[1] == c2[1]:
             y = c1[1]
             for x in range(c1[0], c2[0]):
                 if MAP_ARRAY[y - 1][x] not in "12":
-                    MAP_ARRAY[y - 1][x] = "5"
+                    if MAP_ARRAY[y - 1][x] in "3":
+                        MAP_ARRAY[y - 1][x] = "J"
+                    elif MAP_ARRAY[y - 1][x] in "4":
+                        MAP_ARRAY[y - 1][x] = "L"
+                    elif MAP_ARRAY[y - 1][x] in "6":
+                        MAP_ARRAY[y - 1][x] = "-"
+                    else:
+                        MAP_ARRAY[y - 1][x] = "5"
                 if MAP_ARRAY[y + 1][x] not in "12":
-                    MAP_ARRAY[y + 1][x] = "6"
+                    if MAP_ARRAY[y + 1][x] in "3":
+                        MAP_ARRAY[y + 1][x] = "7"
+                    elif MAP_ARRAY[y + 1][x] in "4":
+                        MAP_ARRAY[y + 1][x] = "Г"
+                    elif MAP_ARRAY[y + 1][x] in "5":
+                        MAP_ARRAY[y + 1][x] = "-"
+                    else:
+                        MAP_ARRAY[y + 1][x] = "6"
                 MAP_ARRAY[y][x] = "2"
     flag = True
     while flag:
         try:
             update_rooms(node.left)
         except RecursionError:
-            print('.', end='')
+            print('*', end='')
         finally:
             flag = False
     flag = True
@@ -68,7 +96,7 @@ def update_rooms(node):
         try:
             update_rooms(node.right)
         except RecursionError:
-            print('.', end='')
+            print('*', end='')
         finally:
             flag = False
 
