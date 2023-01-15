@@ -18,21 +18,18 @@ def resource_path(relative):
 
 
 # ================== BASE CLASSES:
-class Block(pygame.sprite.Sprite):
+class Wall:
     def __init__(self, x, y, b_type, size=(150, 150)):
-        super().__init__()
         self.direction = b_type
-        self.images = ["test_wall_block.png"]
-        fullname = resource_path(self.images[0])
-        self.image = pygame.image.load(fullname)
-        self.resize(size[0], size[1])
-        self.rect = self.image.get_rect()
+        self.rect = pygame.rect.Rect(0, 0, size[0], size[1])
         self.rect.x = x
         self.rect.y = y
-        self.mask = pygame.mask.from_surface(self.image)
 
-    def resize(self, new_width, new_height):
-        self.image = pygame.transform.scale(self.image, (new_width, new_height))
+
+def block(x, y, size=(150, 150)):
+    borders = [Wall(x, y, 5, (size[0], 1)), Wall(x, y + size[1] - 1, 6, (size[0], 1)), Wall(x, y, 3, (1, size[1])),
+               Wall(x + size[0] - 1, y, 4, (1, size[1]))]
+    return borders
 
 
 class CamScroll(ABC):
@@ -690,32 +687,11 @@ class Level:
         for i, a in enumerate(self.raw_map):
             for j, b in enumerate(a):
                 if self.raw_map[i][j] in '034567JLГ|-':
-                    if self.raw_map[i][j] in '3456':
-                        self.stones.append(Block(self.size * i, self.size * j, int(self.raw_map[i][j]), (self.size, self.size)))
-                        self.image.blit(self.stone_image, (self.size * i, self.size * j))
-                    elif self.raw_map[i][j] in "7":
-                        self.stones.append(Block(self.size * i, self.size * j, 6, (self.size, self.size)))
-                        self.stones.append(Block(self.size * i, self.size * j, 4, (self.size, self.size)))
-                        self.image.blit(self.stone_image_t, (self.size * i, self.size * j))
-                    elif self.raw_map[i][j] in "J":
-                        self.stones.append(Block(self.size * i, self.size * j, 5, (self.size, self.size)))
-                        self.stones.append(Block(self.size * i, self.size * j, 3, (self.size, self.size)))
-                        self.image.blit(self.stone_image_t, (self.size * i, self.size * j))
-                    elif self.raw_map[i][j] in "L":
-                        self.stones.append(Block(self.size * i, self.size * j, 6, (self.size, self.size)))
-                        self.stones.append(Block(self.size * i, self.size * j, 3, (self.size, self.size)))
-                        self.image.blit(self.stone_image_t, (self.size * i, self.size * j))
-                    elif self.raw_map[i][j] in "Г":
-                        self.stones.append(Block(self.size * i, self.size * j, 6, (self.size, self.size)))
-                        self.stones.append(Block(self.size * i, self.size * j, 3, (self.size, self.size)))
-                        self.image.blit(self.stone_image_t, (self.size * i, self.size * j))
-                    elif self.raw_map[i][j] in "-":
-                        self.stones.append((Block(self.size * i, self.size * j, 3, (10, self.size))))
-                        self.stones.append((Block(self.size * i + self.size - 10, self.size * j, 4, (10, self.size))))
-                        self.image.blit(self.stone_image, (self.size * i, self.size * j))
-                    elif self.raw_map[i][j] in "|":
-                        self.stones.append((Block(self.size * i, self.size * j, 5, (self.size, 10))))
-                        self.stones.append((Block(self.size * i, self.size * j + self.size - 10, 6, (self.size, 10))))
+                    if self.raw_map[i][j] in '34567JLГ|-':
+                        self.stones.append(Wall(i * self.size, j * self.size, 4, (self.size, 1)))
+                        self.stones.append(Wall(i * self.size, j * self.size + self.size - 1, 3, (self.size, 1)))
+                        self.stones.append(Wall(i * self.size, j * self.size, 6, (1, self.size)))
+                        self.stones.append(Wall(i * self.size + self.size - 1, j * self.size, 5, (1, self.size)))
                         self.image.blit(self.stone_image, (self.size * i, self.size * j))
                     else:
                         self.image.blit(self.stone_image, (self.size * i, self.size * j))

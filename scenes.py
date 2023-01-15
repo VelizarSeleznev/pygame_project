@@ -29,12 +29,12 @@ class Scenes(Vars):
                 selected_res = self.dropdown_res.getSelected().split('x')
                 width = int(selected_res[0])
                 height = int(selected_res[1])
-            #self.sc = pygame.display.set_mode((width, height), )
+            # self.sc = pygame.display.set_mode((width, height), )
             pygame.transform.scale(self.sc, (width, height))
             pygame.display.update()
 
             self.sett_fullscreen = 0
-            #if self.dropdown_res.getSelected() != None:
+            # if self.dropdown_res.getSelected() != None:
             self.change_scene(0)
 
     def change_scene(self, sceneNum):
@@ -45,7 +45,7 @@ class Scenes(Vars):
         if var != None:
             self.show_sett = var
         else:
-            self.show_sett = not(self.show_sett)
+            self.show_sett = not (self.show_sett)
 
         if self.show_sett:
             self.dropdown_res.show()
@@ -61,7 +61,7 @@ class Scenes(Vars):
             self.pre_sett_fullscreen = 0
         else:
             self.pre_sett_fullscreen = 1
-        #self.toggle_fullscreen.inactiveColour((200, 50, 0))
+        # self.toggle_fullscreen.inactiveColour((200, 50, 0))
         # ТУТ НУЖНО КАК ТО ПОКАЗАТЬ, ЧТО ВЫБРАН/СНЯТ ПУНКТ "ПОЛНЫЙ ЭКРАН"
 
     ### Функции-загрузки сцен:
@@ -77,25 +77,27 @@ class Scenes(Vars):
         # СЦЕНА:
         # https://www.wallpaperbetter.com/ru/hd-wallpaper-pztie <- фоны брал отсюда
         try:
-            bg_image = pygame.image.load('images/bg/bg_' + str(width) + 'x' + str(height) +'_16x9.jpg')
+            bg_image = pygame.image.load('images/bg/bg_' + str(width) + 'x' + str(height) + '_16x9.jpg')
         except FileNotFoundError:
             bg_image = pygame.image.load('images/bg/bg_1920x1080_16x9.jpg')
         bg_image_rect = bg_image.get_rect()  # (0, 0, 1920, 1080)
         self.button_test = Button(self.sc, 10, 10, 100, 40, text='to test area', onClick=lambda: self.change_scene(99))
         #  self.button_continue = Button(self.sc, 10, 10, 100, 40, text='продолжить', onClick=lambda: print('продолжить'))
-        self.button_run = Button(self.sc, int(width/2 - 50), 10 + 50, 100, 40, text='забег', onClick=lambda: print('забег'))
-        self.button_settings = Button(self.sc, int(width/2 - 50), 10 + 50*2, 100, 40, text='настройки',
-                                 onClick=lambda: self.show_settings())
-        self.button_exit = Button(self.sc, int(width/2 - 50), 10 + 50*3, 100, 40, text='выйти', onClick=lambda: self.exit())
+        self.button_run = Button(self.sc, int(width / 2 - 50), 10 + 50, 100, 40, text='забег',
+                                 onClick=lambda: print('забег'))
+        self.button_settings = Button(self.sc, int(width / 2 - 50), 10 + 50 * 2, 100, 40, text='настройки',
+                                      onClick=lambda: self.show_settings())
+        self.button_exit = Button(self.sc, int(width / 2 - 50), 10 + 50 * 3, 100, 40, text='выйти',
+                                  onClick=lambda: self.exit())
 
-        self.dropdown_res = Dropdown(self.sc, int(((width/4)*3 - 50)), 60, 140, 30, name='select resolution',
+        self.dropdown_res = Dropdown(self.sc, int(((width / 4) * 3 - 50)), 60, 140, 30, name='select resolution',
                                      choices=sc_resolution, borderRadius=3, colour=pygame.Color('grey'),
                                      values=sc_resolution, direction='down', textHAlign='left')
-        #self.toggle_fullscreen = Toggle(self.sc, int(((width/4)*3 - 20)), 100, 40, 20)
-        self.toggle_fullscreen = Button(self.sc, int(((width/4)*3 + 50 - 15)), 100, 30, 30, text='X',
-                                 onClick=lambda: self.toggle_fullscreen_clb())
+        # self.toggle_fullscreen = Toggle(self.sc, int(((width/4)*3 - 20)), 100, 40, 20)
+        self.toggle_fullscreen = Button(self.sc, int(((width / 4) * 3 + 50 - 15)), 100, 30, 30, text='X',
+                                        onClick=lambda: self.toggle_fullscreen_clb())
         self.apply_settings_btn = Button(self.sc, int(((width / 4) * 3 - 50)), 160, 100, 30, text='применить',
-                                        onClick=lambda: self.settings_apply())
+                                         onClick=lambda: self.settings_apply())
 
         self.show_settings(False)
         # ЦИКЛ:
@@ -147,7 +149,6 @@ class Scenes(Vars):
         self.apply_settings_btn.disable()
         self.apply_settings_btn.hide()
         del self.apply_settings_btn
-
 
     def load_99_TestArea(self):
         # ПЕРЕМЕННЫЕ:
@@ -215,4 +216,3 @@ class Scenes(Vars):
         for i in range(maps_count):
             os.remove(os.path.join(maps_path, map_format.format(i + 1)))
             os.remove(os.path.join(maps_path, image_format.format(i + 1)))
-
