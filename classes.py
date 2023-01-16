@@ -91,16 +91,20 @@ class Camera:
 
 class Sprite:
     def load_image(self, filepath, size_x=None, size_y=None):
-        fullname = resource_path(filepath)
-        self.img = pygame.image.load(fullname)
+        if isinstance(filepath, str):
+            fullname = resource_path(filepath)
+            self.image = pygame.image.load(fullname)
+        else:
+            self.image = filepath
 
         if size_x and size_y:
             self.resize(size_x, size_y)
 
-        self.rect = self.img.get_rect()
+        self.rect = self.image.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
 
     def resize(self, new_width, new_height):
-        self.img = pygame.transform.scale(self.img, (new_width, new_height))
+        self.image = pygame.transform.scale(self.image, (new_width, new_height))
 
 
 class ModuleManager:
@@ -183,6 +187,7 @@ class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
         # анимации
         my_spritesheet = Spritesheet('images/character/character.png')
         sit = Spritesheet('images/character/char_sit.png')
+        most_useful_variable_because_spritesheets_is_trash = Spritesheet('images/character/atk_mask.png')
         self.all_sit_len = 156
         self.sit_len = 98
         self.stand_up_len = 29
@@ -216,6 +221,11 @@ class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
         self.dash_up = []
         self.dash_right = []
         self.dash_left = []
+        self.atk_mask_up = []
+        self.atk_mask_down = []
+        self.atk_mask_right = []
+        self.atk_mask_left = []
+        self.atk_mask = None
         im = my_spritesheet.parse_sprite('spr_charstandside.png')
         self.stand = {'up': pygame.transform.scale2x(my_spritesheet.parse_sprite('spr_charstandback.png')),
                       'down': pygame.transform.scale2x(my_spritesheet.parse_sprite('spr_charstandfront.png')),
@@ -228,6 +238,16 @@ class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
             self.atk_up.append(pygame.transform.scale2x(my_spritesheet.parse_sprite('5.' + str(i) + '.png')))
             self.atk_down.append(pygame.transform.scale2x(my_spritesheet.parse_sprite('4.' + str(i) + '.png')))
             im = pygame.transform.scale2x(my_spritesheet.parse_sprite('6.' + str(i) + '.png'))
+            self.atk_right.append(im)
+            self.atk_left.append(pygame.transform.flip(im, True, False))
+            self.atk_mask_up.append(
+                pygame.transform.scale2x(
+                    most_useful_variable_because_spritesheets_is_trash.parse_sprite('5.' + str(i) + '.png')))
+            self.atk_mask_down.append(
+                pygame.transform.scale2x(
+                    most_useful_variable_because_spritesheets_is_trash.parse_sprite('5.' + str(i) + '.png')))
+            im = pygame.transform.scale2x(
+                most_useful_variable_because_spritesheets_is_trash.parse_sprite('6.' + str(i) + '.png'))
             self.atk_right.append(im)
             self.atk_left.append(pygame.transform.flip(im, True, False))
         for i in range(self.walk_len):
@@ -287,6 +307,7 @@ class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
         # default (32, 64)
 
         surf = pygame.Surface((400, 400), pygame.SRCALPHA, 32).convert_alpha()
+        self.atk_mask = pygame.Surface((400, 400), pygame.SRCALPHA, 32).convert_alpha()
         if self.current_image in self.char or self.current_image in self.char_back\
                 or self.current_image in self.char_left:
             surf.blit(self.current_image, (200 - 12 * 2, 200 - 35))
@@ -294,12 +315,16 @@ class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
             surf.blit(self.current_image, (200 - 20 * 2, 200 - 35))
         elif self.current_image in self.atk_up:
             surf.blit(self.current_image, (200 - 31 * 2, 200 - 61 * 2))
+            self.atk_mask.blit(self.current_image, (200 - 31 * 2, 200 - 61 * 2))
         elif self.current_image in self.atk_down:
             surf.blit(self.current_image, (200 - 22 * 2, 200 - 22 * 2))
+            self.atk_mask.blit(self.current_image, (200 - 22 * 2, 200 - 22 * 2))
         elif self.current_image in self.atk_right:
             surf.blit(self.current_image, (200 - 40 * 2, 200 - 34 * 2))
+            self.atk_mask.blit(self.current_image, (200 - 40 * 2, 200 - 34 * 2))
         elif self.current_image in self.atk_left:
             surf.blit(self.current_image, (200 - 97 * 2 + 24 * 2, 200 - 34 * 2))
+            self.atk_mask.blit(self.current_image, (200 - 97 * 2 + 24 * 2, 200 - 34 * 2))
         elif self.current_image in self.dash_right:
             surf.blit(self.current_image, (200 - 44, 200 - 30))
         elif self.current_image in self.dash_left:
@@ -317,6 +342,7 @@ class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
         return surf
 
     def collide(self, sprites):
+        # стены
         for i in sprites:
             if pygame.sprite.collide_rect(self, i):
                 if i.direction == 3:
@@ -331,6 +357,9 @@ class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
                 if i.direction == 6:
                     self.rect.right = i.rect.left
                     self.pos_x = self.rect.x - 200 + 16
+        # врагам по лицу
+        random_collide_object = Sprite()
+        random_collide_object.load_image(self.atk_mask)
 
     def atk_image(self):
         if pygame.time.get_ticks() - self.timer > 60:
@@ -668,9 +697,9 @@ class Level:
         self.size = 150
         stone = Sprite()
         stone.load_image("test_wall_block.png", self.size, self.size)
-        self.stone_image = stone.img
+        self.stone_image = stone.image
         stone.load_image("test_wall_block.png", 100, 100)
-        self.stone_image_t = stone.img
+        self.stone_image_t = stone.image
         self.image = None
         self.rect = None
         self.mask = None
@@ -696,7 +725,7 @@ class Level:
                     else:
                         self.image.blit(self.stone_image, (self.size * i, self.size * j))
                 if self.raw_map[i][j] in "@":
-                    self.player_pos = (i * self.size, j * self.size)
+                    self.player_pos = (j * self.size, i * self.size)
         self.image.set_colorkey((0, 0, 0))
         self.rect = self.image.get_rect()
         self.mask = pygame.mask.from_surface(self.image)
