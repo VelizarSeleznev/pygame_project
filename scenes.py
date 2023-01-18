@@ -29,12 +29,12 @@ class Scenes(Vars):
                 selected_res = self.dropdown_res.getSelected().split('x')
                 width = int(selected_res[0])
                 height = int(selected_res[1])
-            #self.sc = pygame.display.set_mode((width, height), )
+            # self.sc = pygame.display.set_mode((width, height), )
             pygame.transform.scale(self.sc, (width, height))
             pygame.display.update()
 
             self.sett_fullscreen = 0
-            #if self.dropdown_res.getSelected() != None:
+            # if self.dropdown_res.getSelected() != None:
             self.change_scene(0)
 
     def change_scene(self, sceneNum):
@@ -45,7 +45,7 @@ class Scenes(Vars):
         if var != None:
             self.show_sett = var
         else:
-            self.show_sett = not(self.show_sett)
+            self.show_sett = not (self.show_sett)
 
         if self.show_sett:
             self.dropdown_res.show()
@@ -61,7 +61,7 @@ class Scenes(Vars):
             self.pre_sett_fullscreen = 0
         else:
             self.pre_sett_fullscreen = 1
-        #self.toggle_fullscreen.inactiveColour((200, 50, 0))
+        # self.toggle_fullscreen.inactiveColour((200, 50, 0))
         # ТУТ НУЖНО КАК ТО ПОКАЗАТЬ, ЧТО ВЫБРАН/СНЯТ ПУНКТ "ПОЛНЫЙ ЭКРАН"
 
     ### Функции-загрузки сцен:
@@ -77,25 +77,27 @@ class Scenes(Vars):
         # СЦЕНА:
         # https://www.wallpaperbetter.com/ru/hd-wallpaper-pztie <- фоны брал отсюда
         try:
-            bg_image = pygame.image.load('images/bg/bg_' + str(width) + 'x' + str(height) +'_16x9.jpg')
+            bg_image = pygame.image.load('images/bg/bg_' + str(width) + 'x' + str(height) + '_16x9.jpg')
         except FileNotFoundError:
             bg_image = pygame.image.load('images/bg/bg_1920x1080_16x9.jpg')
         bg_image_rect = bg_image.get_rect()  # (0, 0, 1920, 1080)
         self.button_test = Button(self.sc, 10, 10, 100, 40, text='to test area', onClick=lambda: self.change_scene(99))
         #  self.button_continue = Button(self.sc, 10, 10, 100, 40, text='продолжить', onClick=lambda: print('продолжить'))
-        self.button_run = Button(self.sc, int(width/2 - 50), 10 + 50, 100, 40, text='забег', onClick=lambda: print('забег'))
-        self.button_settings = Button(self.sc, int(width/2 - 50), 10 + 50*2, 100, 40, text='настройки',
-                                 onClick=lambda: self.show_settings())
-        self.button_exit = Button(self.sc, int(width/2 - 50), 10 + 50*3, 100, 40, text='выйти', onClick=lambda: self.exit())
+        self.button_run = Button(self.sc, int(width / 2 - 50), 10 + 50, 100, 40, text='забег',
+                                 onClick=lambda: print('забег'))
+        self.button_settings = Button(self.sc, int(width / 2 - 50), 10 + 50 * 2, 100, 40, text='настройки',
+                                      onClick=lambda: self.show_settings())
+        self.button_exit = Button(self.sc, int(width / 2 - 50), 10 + 50 * 3, 100, 40, text='выйти',
+                                  onClick=lambda: self.exit())
 
-        self.dropdown_res = Dropdown(self.sc, int(((width/4)*3 - 50)), 60, 140, 30, name='select resolution',
+        self.dropdown_res = Dropdown(self.sc, int(((width / 4) * 3 - 50)), 60, 140, 30, name='select resolution',
                                      choices=sc_resolution, borderRadius=3, colour=pygame.Color('grey'),
                                      values=sc_resolution, direction='down', textHAlign='left')
-        #self.toggle_fullscreen = Toggle(self.sc, int(((width/4)*3 - 20)), 100, 40, 20)
-        self.toggle_fullscreen = Button(self.sc, int(((width/4)*3 + 50 - 15)), 100, 30, 30, text='X',
-                                 onClick=lambda: self.toggle_fullscreen_clb())
+        # self.toggle_fullscreen = Toggle(self.sc, int(((width/4)*3 - 20)), 100, 40, 20)
+        self.toggle_fullscreen = Button(self.sc, int(((width / 4) * 3 + 50 - 15)), 100, 30, 30, text='X',
+                                        onClick=lambda: self.toggle_fullscreen_clb())
         self.apply_settings_btn = Button(self.sc, int(((width / 4) * 3 - 50)), 160, 100, 30, text='применить',
-                                        onClick=lambda: self.settings_apply())
+                                         onClick=lambda: self.settings_apply())
 
         self.show_settings(False)
         # ЦИКЛ:
@@ -148,7 +150,6 @@ class Scenes(Vars):
         self.apply_settings_btn.hide()
         del self.apply_settings_btn
 
-
     def load_99_TestArea(self):
         # ПЕРЕМЕННЫЕ:
         # all_sprites = pygame.sprite.Group()
@@ -158,7 +159,6 @@ class Scenes(Vars):
 
         self.player = Player()
         self.camera = Camera(self.player)
-        self.player.set_scene(self)
         follow = Follow(self.camera, self.player)
         self.camera.set_method(follow)
         self.player.set_camera(self.camera)
@@ -178,8 +178,6 @@ class Scenes(Vars):
         self.player.timer = pygame.time.get_ticks()
         # ЦИКЛ:
         while running:
-            if self.corSceneNum == 1:
-                break
             clock.tick(fps)
             # ОБРАБОТКА СОБЫТИЙ:
             # собственные ("общие") события:
@@ -192,10 +190,12 @@ class Scenes(Vars):
                     joy = pygame.joystick.Joystick(ev.device_index)
                     self.joysticks[joy.get_instance_id()] = joy
                     print(f"Joystick {joy.get_instance_id()} connencted")
+                    logging.info(f"Joystick {joy.get_instance_id()} connencted")
 
                 if ev.type == pygame.JOYDEVICEREMOVED:
                     del self.joysticks[ev.instance_id]
                     print(f"Joystick {ev.instance_id} disconnected")
+                    logging.info(f"Joystick {ev.instance_id} disconnected")
             # ОТРИСОВКА КАДРА:
             self.player.animate()
             self.sc.fill((0, 0, 0))
@@ -219,3 +219,124 @@ class Scenes(Vars):
             os.remove(os.path.join(maps_path, map_format.format(i + 1)))
             os.remove(os.path.join(maps_path, image_format.format(i + 1)))
 
+    def load_2_GameArea(self):
+        # ПЕРЕМЕННЫЕ:
+        # all_sprites = pygame.sprite.Group()
+        running = True
+
+        clock = pygame.time.Clock()
+
+        self.player = Player()
+        self.camera = Camera(self.player)
+        follow = Follow(self.camera, self.player)
+        self.camera.set_method(follow)
+        self.player.set_camera(self.camera)
+        if self.joysticks:
+            self.player.set_joystick(True)
+        # self.player.load_image('test_player.png', 100, 100)
+        # all_sprites.add(self.player)
+        maps_n = create_map()
+        cor_level = Level()
+        cor_level.set_camera(self.camera)
+        cor_level.gen('maps/level' + str(maps_n) + '.map')
+        self.player.set_pos(cor_level.get_pos())
+
+        # СЦЕНА:
+        stones = cor_level.get_blocks()
+        self.player.timer = pygame.time.get_ticks()
+        # ЦИКЛ:
+        while running:
+            clock.tick(fps)
+            # ОБРАБОТКА СОБЫТИЙ:
+            # собственные ("общие") события:
+            events = pygame.event.get()
+            for ev in events:
+                if ev.type == pygame.QUIT:
+                    running = False  # выход из цикла отрисовки/логики текущего
+                    self.prog_running = False
+                if ev.type == pygame.JOYDEVICEADDED:
+                    joy = pygame.joystick.Joystick(ev.device_index)
+                    self.joysticks[joy.get_instance_id()] = joy
+                    print(f"Joystick {joy.get_instance_id()} connencted")
+                    logging.info(f"Joystick {joy.get_instance_id()} connencted")
+
+                if ev.type == pygame.JOYDEVICEREMOVED:
+                    del self.joysticks[ev.instance_id]
+                    print(f"Joystick {ev.instance_id} disconnected")
+                    logging.info(f"Joystick {ev.instance_id} disconnected")
+            # ОТРИСОВКА КАДРА:
+            self.player.animate()
+            self.sc.fill((0, 0, 0))
+            # дергаем обновления-отрисовку объектов:
+            self.player.update(self.sc, events)
+            self.player.collide(stones)
+            if pygame.sprite.collide_rect(self.player, self.level_exit):
+                print('ВЫХОД!!!!')
+            self.camera.scroll()
+            cor_level.update(self.sc)
+
+            pygame.display.update()
+            pygame.display.flip()
+        maps_path = './maps'
+        map_format = 'level{}.map'
+        image_format = 'level{}.png'
+        maps_files = [
+            f for f in os.listdir(maps_path)
+            if f.endswith('.map') and os.path.isfile(os.path.join(maps_path, f))
+        ]
+        maps_count = len(maps_files)
+        for i in range(maps_count):
+            os.remove(os.path.join(maps_path, map_format.format(i + 1)))
+            os.remove(os.path.join(maps_path, image_format.format(i + 1)))
+
+    def load_1_endscreen(self):
+        logging.info("loading ending menu")
+        # ПЕРЕМЕННЫЕ:
+        all_sprites = pygame.sprite.Group()
+        self.loop_running = True
+        clock = pygame.time.Clock()
+        end_text = ('текст с результатами:', 'бла-бла-бла')
+
+        # СЦЕНА:
+        try:
+            bg_image = pygame.image.load('images/bg/bg_' + str(width) + 'x' + str(height) + '_16x9.jpg')
+        except FileNotFoundError:
+            bg_image = pygame.image.load('images/bg/bg_1920x1080_16x9.jpg')
+        bg_image_rect = bg_image.get_rect()
+        font1 = pygame.font.Font(None, 36)
+        text1_widget = font1.render(end_text[0], True, (180, 0, 0))
+        button_end = Button(self.sc, int((width/2)-50), int((height/4*3)-20), 100, 40, text='в меню',
+                            onClick=lambda: self.change_scene(0))
+
+        # ЦИКЛ:
+        logging.info("start main menu cycle")
+        while self.loop_running:
+            clock.tick(fps)
+            # обработка событий:
+            events = pygame.event.get()
+            for ev in events:
+                if ev.type == pygame.QUIT:
+                    self.loop_running = False  # выход из цикла отрисовки/логики текущего
+                    self.prog_running = False
+                if ev.type == pygame.JOYDEVICEADDED:
+                    joy = pygame.joystick.Joystick(ev.device_index)
+                    self.joysticks[joy.get_instance_id()] = joy
+                    print(f"Joystick {joy.get_instance_id()} connencted")
+
+                if ev.type == pygame.JOYDEVICEREMOVED:
+                    del self.joysticks[ev.instance_id]
+                    print(f"Joystick {ev.instance_id} disconnected")
+            # отрисовка кадра:
+            self.sc.fill((0, 0, 0))
+            self.sc.blit(bg_image, bg_image_rect)
+            self.sc.blit(text1_widget, (int((width/2)-(text1_widget.get_width()/2)),
+                                        int((height/7)-(text1_widget.get_height()/2))))
+
+            pygame_widgets.update(events)
+            pygame.display.update()
+
+            pygame.display.flip()
+
+        button_end.disable()
+        button_end.hide()
+        del button_end
