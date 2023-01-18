@@ -142,6 +142,13 @@ def create_map(m_w=50, m_h=50, options=None):
             MAP_ARRAY[a][b] = "@"
             break
 
+    while True:
+        a = random.randrange(0, len(MAP_ARRAY) - 1)
+        b = random.randrange(0, len(MAP_ARRAY[0]) - 1)
+        if MAP_ARRAY[a][b] == "1":
+            MAP_ARRAY[a][b] = "#"
+            break
+
     if not os.path.exists(maps_path):
         os.mkdir(maps_path)
 

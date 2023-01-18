@@ -16,6 +16,9 @@ class Game(Scenes):
         while self.prog_running:  # scene switching cycle
             if self.corSceneNum == 0:
                 self.load_0_MainMenu()
+            elif self.corSceneNum == 1:
+                self.load_1_endscreen()
             elif self.corSceneNum == 99:
                 self.load_99_TestArea()
+            print(self.corSceneNum)
         pygame.quit()

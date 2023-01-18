@@ -341,6 +341,9 @@ class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
         self.mask = pygame.mask.from_surface(surf)
         return surf
 
+    def set_scene(self, scene):
+        self.scene = scene
+
     def collide(self, sprites):
         # стены
         for i in sprites:
@@ -357,6 +360,9 @@ class Player(pygame.sprite.Sprite, Sprite, ModuleManager):
                 if i.direction == 6:
                     self.rect.right = i.rect.left
                     self.pos_x = self.rect.x - 200 + 16
+                if i.direction == "#":
+                    logging.info("next level")
+                    self.scene.change_scene(1)
         # врагам по лицу
         random_collide_object = Sprite()
         random_collide_object.load_image(self.atk_mask)
@@ -726,6 +732,10 @@ class Level:
                         self.image.blit(self.stone_image, (self.size * i, self.size * j))
                 if self.raw_map[i][j] in "@":
                     self.player_pos = (j * self.size, i * self.size)
+                if self.raw_map[i][j] in "#":
+                    self.stones.append(Wall(i * self.size, j * self.size, "#", (self.size, self.size)))
+                    pygame.draw.rect(self.image, (255, 0, 0), (i * self.size, j * self.size, self.size, self.size))
+
         self.image.set_colorkey((0, 0, 0))
         self.rect = self.image.get_rect()
         self.mask = pygame.mask.from_surface(self.image)
